@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/</item>
+        <item>@font/abyssinica_sil</item>
+        <item>@font/inconsolata_extralight</item>
+        <item>@font/inconsolata_medium</item>
+        <item>@font/inconsolata_semibold</item>
+        <item>@font/noto_serif_semibold</item>
+        <item>@font/poppins_medium</item>
+        <item>@font/poppins_thin</item>
+    </array>
+</resources>

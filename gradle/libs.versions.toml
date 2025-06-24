@@ -4,6 +4,8 @@
 # Versão correta e única para o Android Gradle Plugin
 androidGradlePlugin = "8.8.1"
 
+generativeai = "0.6.0"
+kotlinx-coroutines-guava = "1.8.0"
 # Versões das bibliotecas
 activity = "1.10.1"
 appcompat = "1.7.0"
@@ -19,6 +21,10 @@ room = "2.6.1" # Nota: A versão 2.7.x do Room não existe, a última estável �
 # Room
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+
+
+google-ai-generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
+kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinx-coroutines-guava" }
 
 # Lifecycle (ViewModel e LiveData)
 lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }

@@ -1,4 +1,3 @@
-// MainActivity.java
 package com.example.receitahub;
 
 import android.content.Intent;
@@ -13,19 +12,24 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.receitahub.adapter.ChatAdapter;
 import com.example.receitahub.data.model.Mensagem;
-// MUDANÇA 1: Importações necessárias
+import com.example.receitahub.data.model.Receita;
+import com.example.receitahub.db.AppDatabase;
+import com.example.receitahub.db.dao.ReceitaDao;
 import com.example.receitahub.service.GeminiService;
+import com.example.receitahub.util.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    // ... (Componentes da UI - sem alteração)
+    // Componentes da UI
     private SearchView mainSearchView;
     private Button btnPopularRecipes, btnQuickRecipes, btnHealthyRecipes, btnVeganRecipes, btnDailyRecipe, btnNews;
     private RecyclerView aiChatRecyclerView;
@@ -34,28 +38,31 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar aiLoadingIndicator;
     private BottomNavigationView bottomNavigation;
 
-
     // Variáveis do Chat
     private List<Mensagem> mensagemList;
     private ChatAdapter chatAdapter;
-
-    // MUDANÇA 2: Declaração do GeminiService
     private GeminiService geminiService;
+
+    // Componentes de Dados e Sessão
+    private SessionManager sessionManager;
+    private ReceitaDao receitaDao;
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // MUDANÇA 3: Inicialização do GeminiService
+        // Inicializações
         geminiService = new GeminiService();
+        sessionManager = new SessionManager(getApplicationContext());
+        receitaDao = AppDatabase.getDatabase(getApplicationContext()).receitaDao();
 
         iniciarComponentes();
         configurarListeners();
         configurarChatRecyclerView();
     }
 
-    // ... (iniciarComponentes, configurarListeners, configurarChatRecyclerView - sem alteração)
     private void iniciarComponentes() {
         mainSearchView = findViewById(R.id.main_search_view);
         btnPopularRecipes = findViewById(R.id.btn_popular_recipes);
@@ -71,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
         aiLoadingIndicator = findViewById(R.id.ai_loading_indicator);
         bottomNavigation = findViewById(R.id.bottom_navigation);
 
-        // Torna o RecyclerView visível para o chat
         aiChatRecyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -105,29 +111,19 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.navigation_favorites) {
                 Toast.makeText(this, "Favoritos Clicado", Toast.LENGTH_SHORT).show();
-                // Exemplo de como iniciar uma nova Activity
-                // Intent intent = new Intent(MainActivity.this, FavoritosActivity.class);
-                // startActivity(intent);
                 return true;
             } else if (itemId == R.id.navigation_profile) {
-                Toast.makeText(this, "Perfil Clicado", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(MainActivity.this, ProfileEditActivity.class); // Create an Intent
-                startActivity(intent); // Start the activity
+                Intent intent = new Intent(MainActivity.this, ProfileEditActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.navigation_add_recipe) {
+                Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.navigation_ai_chat) {
+                Toast.makeText(this, "Chat IA já está visível.", Toast.LENGTH_SHORT).show();
                 return true;
             }
-            // Adicione aqui a lógica para outros itens de menu, como "IA" e "Adicionar"
-            // Por exemplo, para "Adicionar":
-            else if (itemId == R.id.navigation_add_recipe) {
-                // Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
-                // startActivity(intent);
-                return true;
-            }
-            // Para "IA" (assumindo que seja navigation_ai_chat ou similar)
-            else if (itemId == R.id.navigation_ai_chat) {
-                Toast.makeText(this, "IA Clicado", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-
             return false;
         });
     }
@@ -139,10 +135,14 @@ public class MainActivity extends AppCompatActivity {
         aiChatRecyclerView.setAdapter(chatAdapter);
     }
 
-
-    // MUDANÇA 4: Lógica de chamada real da API
     private void enviarMensagem(String texto) {
-        // 1. Adiciona a mensagem do usuário à interface (sem alteração)
+        // Lógica para limitar o chat de convidados
+        if (!sessionManager.isLoggedIn() && sessionManager.getChatInteractionCount() >= 5) {
+            Toast.makeText(this, "Você atingiu o limite de 5 mensagens. Faça login para continuar.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Adiciona a mensagem do usuário à UI
         Mensagem mensagemUsuario = new Mensagem(texto, true);
         mensagemList.add(mensagemUsuario);
         chatAdapter.notifyItemInserted(mensagemList.size() - 1);
@@ -150,18 +150,29 @@ public class MainActivity extends AppCompatActivity {
         aiMessageEditText.setText("");
         aiLoadingIndicator.setVisibility(View.VISIBLE);
 
-        // 2. Cria um prompt contextualizado para a IA
-        String prompt = "Aja como um assistente de culinária para o app ReceitaHub. " +
-                "Responda de forma curta e direta. A pergunta do usuário é: " + texto;
+        // Prompt estruturado para a IA
+        String prompt = "Aja como um assistente de culinária. Crie uma receita completa baseada no seguinte pedido do usuário: '" + texto + "'. " +
+                "Formate sua resposta da seguinte maneira, e nada mais: " +
+                "###TÍTULO### [Título da Receita] " +
+                "###INGREDIENTES### [Lista de ingredientes, um por linha] " +
+                "###MODOPREPARO### [Passos do modo de preparo]";
 
-        // 3. Chama o GeminiService e implementa os callbacks de sucesso e erro
-        geminiService.gerarConteudo(prompt, Executors.newSingleThreadExecutor(), new GeminiService.GeminiCallback() {
+        geminiService.gerarConteudo(prompt, executor, new GeminiService.GeminiCallback() {
             @Override
             public void onSuccess(String response) {
-                // Roda o código na thread principal para poder atualizar a UI
+                if (!sessionManager.isLoggedIn()) {
+                    sessionManager.incrementChatInteractionCount();
+                } else {
+                    salvarReceitaGerada(response, sessionManager.getUserId());
+                }
+
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
-                    Mensagem mensagemIA = new Mensagem(response, false);
+                    // Formata a resposta para melhor visualização no chat
+                    String formattedResponse = response.replace("###TÍTULO###", "Título:")
+                            .replace("###INGREDIENTES###", "\n\nIngredientes:")
+                            .replace("###MODOPREPARO###", "\n\nModo de Preparo:");
+                    Mensagem mensagemIA = new Mensagem(formattedResponse, false);
                     mensagemList.add(mensagemIA);
                     chatAdapter.notifyItemInserted(mensagemList.size() - 1);
                     aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
@@ -170,12 +181,29 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Exception e) {
-                // Roda o código na thread principal para poder atualizar a UI
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
                     Toast.makeText(MainActivity.this, "Falha ao contatar a IA. Tente novamente.", Toast.LENGTH_LONG).show();
                 });
             }
         });
+    }
+
+    private void salvarReceitaGerada(String rawResponse, long userId) {
+        try {
+            // Extrai as partes da resposta baseada na formatação
+            String titulo = rawResponse.split("###TÍTULO###")[1].split("###INGREDIENTES###")[0].trim();
+            String ingredientes = rawResponse.split("###INGREDIENTES###")[1].split("###MODOPREPARO###")[0].trim();
+            String modoPreparo = rawResponse.split("###MODOPREPARO###")[1].trim();
+
+            if (!titulo.isEmpty() && !ingredientes.isEmpty() && !modoPreparo.isEmpty()) {
+                Receita receitaGerada = new Receita(userId, titulo, ingredientes, modoPreparo, "GERADA");
+                executor.execute(() -> receitaDao.salvarReceita(receitaGerada));
+            }
+        } catch (Exception e) {
+            // Se a formatação da IA falhar, a receita não é salva, mas o erro é logado.
+            // O usuário ainda recebe a resposta no chat.
+            e.printStackTrace();
+        }
     }
 }

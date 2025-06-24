@@ -1,30 +1,39 @@
+# Conteúdo corrigido para libs.versions.toml
+
 [versions]
-agp = "8.10.1"
+# Versão correta e única para o Android Gradle Plugin
+androidGradlePlugin = "8.8.1"
+
+# Versões das bibliotecas
+activity = "1.10.1"
+appcompat = "1.7.0"
+constraintlayout = "2.1.4"
+espressoCore = "3.6.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-appcompat = "1.7.0"
 lifecycle = "2.7.0"
 material = "1.12.0"
-activity = "1.10.1"
-constraintlayout = "2.1.4"
-room = "2.7.2"
+room = "2.6.1" # Nota: A versão 2.7.x do Room não existe, a última estável é 2.6.1
 
 [libraries]
+# Room
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
+# Lifecycle (ViewModel e LiveData)
 lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
 lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "lifecycle" }
 
+# Testes
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
+# UI
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-
 [plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
+# O nome aqui usa um traço para criar o "android.application" no código
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

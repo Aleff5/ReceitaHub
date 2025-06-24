@@ -1,83 +1,142 @@
 package com.example.receitahub;
 
-import android.content.Intent; // Importe a classe Intent para iniciar novas Activities
 import android.os.Bundle;
-import android.view.MenuItem; // Importe a classe MenuItem para lidar com os itens do menu
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull; // Importe a anotação NonNull
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.SearchView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-// Importe a classe BottomNavigationView do Material Design
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.receitahub.adapter.ChatAdapter;
+import com.example.receitahub.data.model.Mensagem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Declare uma variável para a BottomNavigationView para que ela possa ser acessada em onCreate
-    private BottomNavigationView bottomNavigationView;
+    // Componentes da UI
+    private SearchView mainSearchView;
+    private Button btnPopularRecipes, btnQuickRecipes, btnHealthyRecipes, btnVeganRecipes, btnDailyRecipe, btnNews;
+    private RecyclerView aiChatRecyclerView;
+    private EditText aiMessageEditText;
+    private ImageButton aiSendButton;
+    private ProgressBar aiLoadingIndicator;
+    private BottomNavigationView bottomNavigation;
+
+    // Variáveis do Chat
+    private List<Mensagem> mensagemList;
+    private ChatAdapter chatAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this); // Ativa o modo EdgeToEdge para o app
-        setContentView(R.layout.activity_main); // Define o layout da Activity
+        setContentView(R.layout.activity_main);
 
-        // Configura o listener para aplicar insets de janela (para lidar com barras de sistema)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        // Inicializa os componentes da UI
+        iniciarComponentes();
 
-        // Encontra a BottomNavigationView no layout usando seu ID
-        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        // Configura os listeners de clique
+        configurarListeners();
 
-        // Configura o listener para os cliques nos itens da BottomNavigationView
-        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                // Obtém o ID do item do menu que foi selecionado
-                int itemId = item.getItemId();
+        // Configura o RecyclerView para o chat
+        configurarChatRecyclerView();
+    }
 
-                // Usa um switch-case (ou if-else if) para lidar com cada item do menu
-                if (itemId == R.id.navigation_home) {
-                    // Lógica para o item "Início"
-                    // Como esta é a MainActivity, talvez você não precise fazer muito aqui,
-                    // a menos que queira resetar o estado da tela principal.
-                    return true; // Retorna true para indicar que o item foi tratado
-                } else if (itemId == R.id.navigation_ai_chat) {
-                    // Lógica para o item "IA" (chat com a IA)
-                    // Aqui você provavelmente vai querer alternar a visibilidade de views
-                    // ou carregar um Fragment de chat.
-                    // Exemplo:
-                    // findViewById(R.id.scroll_view_container).setVisibility(View.GONE);
-                    // findViewById(R.id.ai_chat_recycler_view).setVisibility(View.VISIBLE);
-                    // findViewById(R.id.ai_input_container).setVisibility(View.VISIBLE);
-                    return true;
-                } else if (itemId == R.id.navigation_add_recipe) {
-                    // Lógica para o item "Adicionar Receita"
-                    // Você pode iniciar uma nova Activity aqui ou abrir um diálogo/fragmento de adição.
-                    // Exemplo: startActivity(new Intent(MainActivity.this, AddRecipeActivity.class));
-                    return true;
-                } else if (itemId == R.id.navigation_favorites) {
-                    // Lógica para o item "Favoritos"
-                    return true;
-                } else if (itemId == R.id.navigation_profile) {
-                    // Lógica para o item "Perfil"
-                    // Cria uma Intent para iniciar a ProfileEditActivity
-                    Intent intent = new Intent(MainActivity.this, ProfileEditActivity.class);
-                    startActivity(intent); // Inicia a nova Activity
-                    return true;
-                }
-                // Se nenhum dos itens conhecidos for selecionado, retorna false
-                return false;
+    private void iniciarComponentes() {
+        mainSearchView = findViewById(R.id.main_search_view);
+        btnPopularRecipes = findViewById(R.id.btn_popular_recipes);
+        btnQuickRecipes = findViewById(R.id.btn_quick_recipes);
+        btnHealthyRecipes = findViewById(R.id.btn_healthy_recipes);
+        btnVeganRecipes = findViewById(R.id.btn_vegan_recipes);
+        btnDailyRecipe = findViewById(R.id.btn_daily_recipe);
+        btnNews = findViewById(R.id.btn_news);
+
+        aiChatRecyclerView = findViewById(R.id.ai_chat_recycler_view);
+        aiMessageEditText = findViewById(R.id.ai_message_edit_text);
+        aiSendButton = findViewById(R.id.ai_send_button);
+        aiLoadingIndicator = findViewById(R.id.ai_loading_indicator);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        // Torna o RecyclerView visível para o chat
+        aiChatRecyclerView.setVisibility(View.VISIBLE);
+    }
+
+    private void configurarListeners() {
+        // Listeners para os botões de categoria de receita
+        View.OnClickListener categoryClickListener = v -> {
+            Button b = (Button) v;
+            Toast.makeText(MainActivity.this, "Clicou em: " + b.getText().toString(), Toast.LENGTH_SHORT).show();
+        };
+
+        btnPopularRecipes.setOnClickListener(categoryClickListener);
+        btnQuickRecipes.setOnClickListener(categoryClickListener);
+        btnHealthyRecipes.setOnClickListener(categoryClickListener);
+        btnVeganRecipes.setOnClickListener(categoryClickListener);
+        btnDailyRecipe.setOnClickListener(categoryClickListener);
+        btnNews.setOnClickListener(categoryClickListener);
+
+        // Listener para o botão de enviar mensagem para a IA
+        aiSendButton.setOnClickListener(v -> {
+            String mensagemTexto = aiMessageEditText.getText().toString().trim();
+            if (!mensagemTexto.isEmpty()) {
+                enviarMensagem(mensagemTexto);
             }
         });
 
-        // Opcional: Define o item "Início" como selecionado por padrão quando a Activity é criada
-        // bottomNavigationView.setSelectedItemId(R.id.navigation_home);
+        // Listener para a barra de navegação inferior
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                Toast.makeText(this, "Home Clicado", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (itemId == R.id.nav_favorites) {
+                Toast.makeText(this, "Favoritos Clicado", Toast.LENGTH_SHORT).show();
+                // Exemplo de como iniciar uma nova Activity
+                // Intent intent = new Intent(MainActivity.this, FavoritosActivity.class);
+                // startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                Toast.makeText(this, "Perfil Clicado", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void configurarChatRecyclerView() {
+        mensagemList = new ArrayList<>();
+        chatAdapter = new ChatAdapter(mensagemList);
+        aiChatRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        aiChatRecyclerView.setAdapter(chatAdapter);
+    }
+
+    private void enviarMensagem(String texto) {
+        // Adiciona a mensagem do usuário à lista e notifica o adapter
+        Mensagem mensagemUsuario = new Mensagem(texto, true);
+        mensagemList.add(mensagemUsuario);
+        chatAdapter.notifyItemInserted(mensagemList.size() - 1);
+        aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
+
+        // Limpa o campo de texto
+        aiMessageEditText.setText("");
+
+        // Mostra o indicador de carregamento e simula a resposta da IA
+        aiLoadingIndicator.setVisibility(View.VISIBLE);
+
+        // Simulação de uma chamada de API ou processamento da IA
+        // Substitua este trecho pela sua lógica real de integração com a IA
+        new android.os.Handler().postDelayed(() -> {
+            aiLoadingIndicator.setVisibility(View.GONE);
+            String respostaIA = "Olá! Eu sou sua assistente de receitas. Como posso ajudar com '" + texto + "' hoje?";
+            Mensagem mensagemIA = new Mensagem(respostaIA, false);
+            mensagemList.add(mensagemIA);
+            chatAdapter.notifyItemInserted(mensagemList.size() - 1);
+            aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
+        }, 2000); // Atraso de 2 segundos para simular a resposta
     }
 }

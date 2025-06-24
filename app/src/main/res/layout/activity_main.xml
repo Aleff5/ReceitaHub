@@ -13,14 +13,14 @@
         android:id="@+id/tv_app_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ReceitaHub"
-        android:fontFamily="@font/poppins_medium"
-        android:textSize="28sp"
-        android:textColor="@color/white_text"
         android:layout_marginTop="32dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:fontFamily="@font/poppins_medium"
+        android:text="ReceitaHub"
+        android:textColor="@color/white_text"
+        android:textSize="28sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <SearchView
         android:id="@+id/main_search_view"

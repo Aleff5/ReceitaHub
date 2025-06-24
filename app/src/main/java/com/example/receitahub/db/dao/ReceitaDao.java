@@ -13,13 +13,13 @@ public interface ReceitaDao {
     @Insert
     void salvarReceita(Receita receita);
 
-    @Query("SELECT * FROM receitas_favoritas ORDER BY timestamp DESC")
+    @Query("SELECT * FROM receitas ORDER BY timestamp DESC")
     LiveData<List<Receita>> getTodasReceitasFavoritas();
 
-    @Query("SELECT * FROM receitas_favoritas WHERE id = :receitaId")
+    @Query("SELECT * FROM receitas WHERE id = :receitaId")
     Receita getReceitaPorId(int receitaId);
 
-    @Query("DELETE FROM receitas_favoritas WHERE id = :receitaId")
+    @Query("DELETE FROM receitas WHERE id = :receitaId")
     void deletarReceita(int receitaId);
 }
 

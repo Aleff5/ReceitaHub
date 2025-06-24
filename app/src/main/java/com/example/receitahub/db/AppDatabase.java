@@ -7,21 +7,32 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import com.example.receitahub.data.model.Receita;
 import com.example.receitahub.db.dao.ReceitaDao;
+import com.example.receitahub.data.model.User; // Importe o User
+import com.example.receitahub.db.dao.UserDao;   // Importe o UserDao
 
-@Database(entities = {Receita.class}, version = 1, exportSchema = false)
-public abstract class AppDatabase extends RoomDatabase{
-    public  abstract ReceitaDao receitaDao();
+
+
+
+// AUMENTE A VERSÃO PARA 2
+@Database(entities = {Receita.class, User.class}, version = 2, exportSchema = false)
+public abstract class AppDatabase extends RoomDatabase {
+    public abstract ReceitaDao receitaDao();
+    public abstract UserDao userDao();
+
     private static volatile AppDatabase INSTANCE;
-    public static AppDatabase getDatabase(final Context context){
-        if (INSTANCE == null){
+
+    public static AppDatabase getDatabase(final Context context) {
+        if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
-                if  (INSTANCE == null){
+                if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            AppDatabase.class, "receitas_app_db").build();
+                                    AppDatabase.class, "receitas_app_db")
+                            // Adicione isso para lidar com a migração de versão (solução simples)
+                            .fallbackToDestructiveMigration()
+                            .build();
                 }
             }
         }
-        return  INSTANCE;
+        return INSTANCE;
     }
-
 }

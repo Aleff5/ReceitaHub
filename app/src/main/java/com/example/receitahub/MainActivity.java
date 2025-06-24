@@ -1,7 +1,7 @@
 // MainActivity.java
 package com.example.receitahub;
 
-import android.content.Intent; // Import this for Intent
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,13 +15,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.receitahub.adapter.ChatAdapter;
 import com.example.receitahub.data.model.Mensagem;
+// MUDANÇA 1: Importações necessárias
+import com.example.receitahub.service.GeminiService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Componentes da UI
+    // ... (Componentes da UI - sem alteração)
     private SearchView mainSearchView;
     private Button btnPopularRecipes, btnQuickRecipes, btnHealthyRecipes, btnVeganRecipes, btnDailyRecipe, btnNews;
     private RecyclerView aiChatRecyclerView;
@@ -30,25 +34,28 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar aiLoadingIndicator;
     private BottomNavigationView bottomNavigation;
 
+
     // Variáveis do Chat
     private List<Mensagem> mensagemList;
     private ChatAdapter chatAdapter;
+
+    // MUDANÇA 2: Declaração do GeminiService
+    private GeminiService geminiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Inicializa os componentes da UI
+        // MUDANÇA 3: Inicialização do GeminiService
+        geminiService = new GeminiService();
+
         iniciarComponentes();
-
-        // Configura os listeners de clique
         configurarListeners();
-
-        // Configura o RecyclerView para o chat
         configurarChatRecyclerView();
     }
 
+    // ... (iniciarComponentes, configurarListeners, configurarChatRecyclerView - sem alteração)
     private void iniciarComponentes() {
         mainSearchView = findViewById(R.id.main_search_view);
         btnPopularRecipes = findViewById(R.id.btn_popular_recipes);
@@ -104,24 +111,19 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.navigation_profile) {
                 Toast.makeText(this, "Perfil Clicado", Toast.LENGTH_SHORT).show();
-                // Lógica para o item "Perfil" - INÍCIO DA MUDANÇA
                 Intent intent = new Intent(MainActivity.this, ProfileEditActivity.class); // Create an Intent
                 startActivity(intent); // Start the activity
-                // Lógica para o item "Perfil" - FIM DA MUDANÇA
                 return true;
             }
             // Adicione aqui a lógica para outros itens de menu, como "IA" e "Adicionar"
             // Por exemplo, para "Adicionar":
             else if (itemId == R.id.navigation_add_recipe) {
-                Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
-                startActivity(intent);
+                // Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
+                // startActivity(intent);
                 return true;
             }
             // Para "IA" (assumindo que seja navigation_ai_chat ou similar)
             else if (itemId == R.id.navigation_ai_chat) {
-                // Aqui você pode alternar a visibilidade do RecyclerView do chat ou iniciar uma nova activity de chat
-                // aiChatRecyclerView.setVisibility(View.VISIBLE);
-                // aiInputContainer.setVisibility(View.VISIBLE);
                 Toast.makeText(this, "IA Clicado", Toast.LENGTH_SHORT).show();
                 return true;
             }
@@ -137,28 +139,43 @@ public class MainActivity extends AppCompatActivity {
         aiChatRecyclerView.setAdapter(chatAdapter);
     }
 
+
+    // MUDANÇA 4: Lógica de chamada real da API
     private void enviarMensagem(String texto) {
-        // Adiciona a mensagem do usuário à lista e notifica o adapter
+        // 1. Adiciona a mensagem do usuário à interface (sem alteração)
         Mensagem mensagemUsuario = new Mensagem(texto, true);
         mensagemList.add(mensagemUsuario);
         chatAdapter.notifyItemInserted(mensagemList.size() - 1);
         aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
-
-        // Limpa o campo de texto
         aiMessageEditText.setText("");
-
-        // Mostra o indicador de carregamento e simula a resposta da IA
         aiLoadingIndicator.setVisibility(View.VISIBLE);
 
-        // Simulação de uma chamada de API ou processamento da IA
-        // Substitua este trecho pela sua lógica real de integração com a IA
-        new android.os.Handler().postDelayed(() -> {
-            aiLoadingIndicator.setVisibility(View.GONE);
-            String respostaIA = "Olá! Eu sou sua assistente de receitas. Como posso ajudar com '" + texto + "' hoje?";
-            Mensagem mensagemIA = new Mensagem(respostaIA, false);
-            mensagemList.add(mensagemIA);
-            chatAdapter.notifyItemInserted(mensagemList.size() - 1);
-            aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
-        }, 2000); // Atraso de 2 segundos para simular a resposta
+        // 2. Cria um prompt contextualizado para a IA
+        String prompt = "Aja como um assistente de culinária para o app ReceitaHub. " +
+                "Responda de forma curta e direta. A pergunta do usuário é: " + texto;
+
+        // 3. Chama o GeminiService e implementa os callbacks de sucesso e erro
+        geminiService.gerarConteudo(prompt, Executors.newSingleThreadExecutor(), new GeminiService.GeminiCallback() {
+            @Override
+            public void onSuccess(String response) {
+                // Roda o código na thread principal para poder atualizar a UI
+                runOnUiThread(() -> {
+                    aiLoadingIndicator.setVisibility(View.GONE);
+                    Mensagem mensagemIA = new Mensagem(response, false);
+                    mensagemList.add(mensagemIA);
+                    chatAdapter.notifyItemInserted(mensagemList.size() - 1);
+                    aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                // Roda o código na thread principal para poder atualizar a UI
+                runOnUiThread(() -> {
+                    aiLoadingIndicator.setVisibility(View.GONE);
+                    Toast.makeText(MainActivity.this, "Falha ao contatar a IA. Tente novamente.", Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 }

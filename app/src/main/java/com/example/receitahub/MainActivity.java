@@ -48,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private ReceitaDao receitaDao;
     private final Executor executor = Executors.newSingleThreadExecutor();
 
+    // Flag para saber se a próxima resposta da IA é uma lista de sugestões
+    private boolean isAwaitingSuggestionList = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,10 +85,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void configurarListeners() {
-        // Listeners para os botões de categoria de receita
+        // MUDANÇA 1: Novo listener para os botões de categoria
         View.OnClickListener categoryClickListener = v -> {
             Button b = (Button) v;
-            Toast.makeText(MainActivity.this, "Clicou em: " + b.getText().toString(), Toast.LENGTH_SHORT).show();
+            String categoria = b.getText().toString();
+            // Inicia a conversa com a IA pedindo sugestões para a categoria clicada
+            pedirSugestoesParaCategoria(categoria);
         };
 
         btnPopularRecipes.setOnClickListener(categoryClickListener);
@@ -95,15 +100,17 @@ public class MainActivity extends AppCompatActivity {
         btnDailyRecipe.setOnClickListener(categoryClickListener);
         btnNews.setOnClickListener(categoryClickListener);
 
-        // Listener para o botão de enviar mensagem para a IA
+        // Listener para o botão de enviar mensagem (sem alteração)
         aiSendButton.setOnClickListener(v -> {
             String mensagemTexto = aiMessageEditText.getText().toString().trim();
             if (!mensagemTexto.isEmpty()) {
+                // Ao enviar uma mensagem, assumimos que não estamos mais esperando uma lista.
+                isAwaitingSuggestionList = false;
                 enviarMensagem(mensagemTexto);
             }
         });
 
-        // Listener para a barra de navegação inferior
+        // Listener para a barra de navegação inferior (sem alteração)
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.navigation_home) {
@@ -135,44 +142,78 @@ public class MainActivity extends AppCompatActivity {
         aiChatRecyclerView.setAdapter(chatAdapter);
     }
 
+    // MUDANÇA 2: Novo método para iniciar a conversa a partir de um botão de categoria
+    private void pedirSugestoesParaCategoria(String categoria) {
+        // Define que a próxima resposta da IA deve ser tratada como uma lista de sugestões
+        isAwaitingSuggestionList = true;
+
+        // Exibe a ação do usuário no chat
+        String textoUsuario = "Me dê sugestões de " + categoria.toLowerCase();
+        Mensagem mensagemUsuario = new Mensagem(textoUsuario, true);
+        mensagemList.add(mensagemUsuario);
+        chatAdapter.notifyItemInserted(mensagemList.size() - 1);
+        aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
+
+        // Chama o método `enviarMensagem` para fazer a requisição à IA
+        enviarMensagem(textoUsuario);
+    }
+
     private void enviarMensagem(String texto) {
-        // Lógica para limitar o chat de convidados
         if (!sessionManager.isLoggedIn() && sessionManager.getChatInteractionCount() >= 5) {
             Toast.makeText(this, "Você atingiu o limite de 5 mensagens. Faça login para continuar.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // Adiciona a mensagem do usuário à UI
-        Mensagem mensagemUsuario = new Mensagem(texto, true);
-        mensagemList.add(mensagemUsuario);
-        chatAdapter.notifyItemInserted(mensagemList.size() - 1);
-        aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
+        // Se a mensagem não for de um clique de botão, adiciona ao chat.
+        // Se for de um clique, já foi adicionada em `pedirSugestoesParaCategoria`.
+        boolean isFromCategoryClick = isAwaitingSuggestionList;
+        if (!isFromCategoryClick) {
+            Mensagem mensagemUsuario = new Mensagem(texto, true);
+            mensagemList.add(mensagemUsuario);
+            chatAdapter.notifyItemInserted(mensagemList.size() - 1);
+            aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
+        }
+
         aiMessageEditText.setText("");
         aiLoadingIndicator.setVisibility(View.VISIBLE);
 
-        // Prompt estruturado para a IA
-        String prompt = "Aja como um assistente de culinária. Crie uma receita completa baseada no seguinte pedido do usuário: '" + texto + "'. " +
-                "Formate sua resposta da seguinte maneira, e nada mais: " +
-                "###TÍTULO### [Título da Receita] " +
-                "###INGREDIENTES### [Lista de ingredientes, um por linha] " +
-                "###MODOPREPARO### [Passos do modo de preparo]";
+        // MUDANÇA 3: O prompt agora depende se estamos pedindo uma lista ou uma receita completa
+        String prompt;
+        if (isAwaitingSuggestionList) {
+            prompt = "Aja como um assistente de culinária. Liste 5 nomes de '" + texto + "', um por linha, e nada mais. Exemplo: 'Nome da Receita 1\\nNome da Receita 2'";
+        } else {
+            prompt = "Aja como um assistente de culinária. Crie uma receita completa baseada no seguinte pedido do usuário: '" + texto + "'. " +
+                    "Formate sua resposta da seguinte maneira, e nada mais: " +
+                    "###TÍTULO### [Título da Receita] " +
+                    "###INGREDIENTES### [Lista de ingredientes, um por linha] " +
+                    "###MODOPREPARO### [Passos do modo de preparo]";
+        }
 
         geminiService.gerarConteudo(prompt, executor, new GeminiService.GeminiCallback() {
             @Override
             public void onSuccess(String response) {
                 if (!sessionManager.isLoggedIn()) {
                     sessionManager.incrementChatInteractionCount();
+                }
+
+                String finalResponse;
+                // MUDANÇA 4: Trata a resposta de forma diferente se for uma lista
+                if (isAwaitingSuggestionList) {
+                    finalResponse = "Claro! Aqui estão algumas sugestões:\n\n" + response;
+                    // Depois de receber a lista, a próxima mensagem será uma receita completa
+                    isAwaitingSuggestionList = false;
                 } else {
-                    salvarReceitaGerada(response, sessionManager.getUserId());
+                    if (sessionManager.isLoggedIn()) {
+                        salvarReceitaGerada(response, sessionManager.getUserId());
+                    }
+                    finalResponse = response.replace("###TÍTULO###", "Título:")
+                            .replace("###INGREDIENTES###", "\n\nIngredientes:")
+                            .replace("###MODOPREPARO###", "\n\nModo de Preparo:");
                 }
 
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
-                    // Formata a resposta para melhor visualização no chat
-                    String formattedResponse = response.replace("###TÍTULO###", "Título:")
-                            .replace("###INGREDIENTES###", "\n\nIngredientes:")
-                            .replace("###MODOPREPARO###", "\n\nModo de Preparo:");
-                    Mensagem mensagemIA = new Mensagem(formattedResponse, false);
+                    Mensagem mensagemIA = new Mensagem(finalResponse, false);
                     mensagemList.add(mensagemIA);
                     chatAdapter.notifyItemInserted(mensagemList.size() - 1);
                     aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
@@ -183,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
             public void onError(Exception e) {
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
+                    isAwaitingSuggestionList = false; // Reseta a flag em caso de erro
                     Toast.makeText(MainActivity.this, "Falha ao contatar a IA. Tente novamente.", Toast.LENGTH_LONG).show();
                 });
             }
@@ -191,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void salvarReceitaGerada(String rawResponse, long userId) {
         try {
-            // Extrai as partes da resposta baseada na formatação
             String titulo = rawResponse.split("###TÍTULO###")[1].split("###INGREDIENTES###")[0].trim();
             String ingredientes = rawResponse.split("###INGREDIENTES###")[1].split("###MODOPREPARO###")[0].trim();
             String modoPreparo = rawResponse.split("###MODOPREPARO###")[1].trim();
@@ -201,8 +242,6 @@ public class MainActivity extends AppCompatActivity {
                 executor.execute(() -> receitaDao.salvarReceita(receitaGerada));
             }
         } catch (Exception e) {
-            // Se a formatação da IA falhar, a receita não é salva, mas o erro é logado.
-            // O usuário ainda recebe a resposta no chat.
             e.printStackTrace();
         }
     }

@@ -1,5 +1,7 @@
+// MainActivity.java
 package com.example.receitahub;
 
+import android.content.Intent; // Import this for Intent
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -91,19 +93,39 @@ public class MainActivity extends AppCompatActivity {
         // Listener para a barra de navegação inferior
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
+            if (itemId == R.id.navigation_home) {
                 Toast.makeText(this, "Home Clicado", Toast.LENGTH_SHORT).show();
                 return true;
-            } else if (itemId == R.id.nav_favorites) {
+            } else if (itemId == R.id.navigation_favorites) {
                 Toast.makeText(this, "Favoritos Clicado", Toast.LENGTH_SHORT).show();
                 // Exemplo de como iniciar uma nova Activity
                 // Intent intent = new Intent(MainActivity.this, FavoritosActivity.class);
                 // startActivity(intent);
                 return true;
-            } else if (itemId == R.id.nav_profile) {
+            } else if (itemId == R.id.navigation_profile) {
                 Toast.makeText(this, "Perfil Clicado", Toast.LENGTH_SHORT).show();
+                // Lógica para o item "Perfil" - INÍCIO DA MUDANÇA
+                Intent intent = new Intent(MainActivity.this, ProfileEditActivity.class); // Create an Intent
+                startActivity(intent); // Start the activity
+                // Lógica para o item "Perfil" - FIM DA MUDANÇA
                 return true;
             }
+            // Adicione aqui a lógica para outros itens de menu, como "IA" e "Adicionar"
+            // Por exemplo, para "Adicionar":
+            else if (itemId == R.id.navigation_add_recipe) {
+                Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
+                startActivity(intent);
+                return true;
+            }
+            // Para "IA" (assumindo que seja navigation_ai_chat ou similar)
+            else if (itemId == R.id.navigation_ai_chat) {
+                // Aqui você pode alternar a visibilidade do RecyclerView do chat ou iniciar uma nova activity de chat
+                // aiChatRecyclerView.setVisibility(View.VISIBLE);
+                // aiInputContainer.setVisibility(View.VISIBLE);
+                Toast.makeText(this, "IA Clicado", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
             return false;
         });
     }

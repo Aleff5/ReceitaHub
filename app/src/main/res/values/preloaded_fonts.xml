@@ -7,6 +7,7 @@
         <item>@font/inconsolata_medium</item>
         <item>@font/inconsolata_semibold</item>
         <item>@font/noto_serif_semibold</item>
+        <item>@font/poppins</item>
         <item>@font/poppins_medium</item>
         <item>@font/poppins_thin</item>
     </array>

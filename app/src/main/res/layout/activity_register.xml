@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/profile_root_layout"  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/register_root_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_background"
-    tools:context=".ProfileEditActivity"> <ImageView
-    android:id="@+id/iv_back_button"
+    tools:context=".RegisterActivity"> <ImageView
+    android:id="@+id/iv_register_back_button"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:src="@drawable/ic_arrow_back"
@@ -21,23 +22,24 @@
     />
 
     <TextView
-        android:id="@+id/tv_auth_title"
+        android:id="@+id/tv_register_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
-        android:fontFamily="@font/poppins_medium"
-        android:text="Login"
-        android:textColor="@color/white_text"
+        android:text="Criar Conta"
         android:textSize="28sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/white_text"
+        android:fontFamily="@font/poppins_medium"
+        android:layout_marginTop="32dp"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <EditText
-        android:id="@+id/et_email"
+        android:id="@+id/et_register_email"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp" android:layout_marginStart="24dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:hint="Email"
         android:textColor="@color/white_text"
@@ -45,12 +47,12 @@
         android:background="@drawable/rounded_edittext_background"
         android:padding="12dp"
         android:inputType="textEmailAddress"
-        app:layout_constraintTop_toBottomOf="@id/tv_auth_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_register_title"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <EditText
-        android:id="@+id/et_password"
+        android:id="@+id/et_register_password"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -62,12 +64,12 @@
         android:background="@drawable/rounded_edittext_background"
         android:padding="12dp"
         android:inputType="textPassword"
-        app:layout_constraintTop_toBottomOf="@id/et_email"
+        app:layout_constraintTop_toBottomOf="@id/et_register_email"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <EditText
-        android:id="@+id/et_confirm_password"
+        android:id="@+id/et_register_confirm_password"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -79,15 +81,16 @@
         android:background="@drawable/rounded_edittext_background"
         android:padding="12dp"
         android:inputType="textPassword"
-        android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/et_password"
+        app:layout_constraintTop_toBottomOf="@id/et_register_password"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
-        android:id="@+id/btn_auth_action"
+        android:id="@+id/btn_register_action"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Entrar" android:backgroundTint="@color/orange_primary"
+        android:text="Cadastrar"
+        android:backgroundTint="@color/orange_primary"
         android:textColor="@color/white_text"
         android:fontFamily="@font/poppins_medium"
         android:textSize="18sp"
@@ -95,20 +98,21 @@
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         app:cornerRadius="16dp"
-        app:layout_constraintTop_toBottomOf="@id/et_confirm_password"
+        app:layout_constraintTop_toBottomOf="@id/et_register_confirm_password"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
-        android:id="@+id/tv_toggle_auth_mode"
+        android:id="@+id/tv_back_to_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Não tem uma conta? Cadastre-se." android:textColor="@color/white_text"
+        android:text="Já tem uma conta? Faça Login."
+        android:textColor="@color/white_text"
         android:fontFamily="@font/poppins_medium"
         android:textSize="14sp"
         android:padding="8dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/btn_auth_action"
+        app:layout_constraintTop_toBottomOf="@id/btn_register_action"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

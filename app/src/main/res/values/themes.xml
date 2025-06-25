@@ -3,4 +3,9 @@
     </style>
 
     <style name="Theme.ReceitaHub" parent="Base.Theme.ReceitaHub" />
+
+    <style name="BottomNav.Custom.TextAppearance" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:singleLine">false</item>
+        <item name="android:maxLines">2</item> </style>
+
 </resources>

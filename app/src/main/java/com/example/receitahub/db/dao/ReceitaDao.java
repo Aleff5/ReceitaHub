@@ -21,5 +21,8 @@ public interface ReceitaDao {
 
     @Query("DELETE FROM receitas WHERE id = :receitaId")
     void deletarReceita(int receitaId);
-}
 
+    // ADICIONADO: Query para buscar receitas por status
+    @Query("SELECT * FROM receitas WHERE status = :status ORDER BY id DESC")
+    LiveData<List<Receita>> findByStatus(String status);
+}

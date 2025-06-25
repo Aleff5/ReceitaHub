@@ -1,20 +1,22 @@
 package com.example.receitahub.db;
 
-
 import android.content.Context;
+
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+
 import com.example.receitahub.data.model.Receita;
 import com.example.receitahub.db.dao.ReceitaDao;
-import com.example.receitahub.data.model.User; // Importe o User
-import com.example.receitahub.db.dao.UserDao;   // Importe o UserDao
+import com.example.receitahub.data.model.User;
+import com.example.receitahub.db.dao.UserDao;
 
 
-
-
-// AUMENTE A VERSÃO PARA 2
-@Database(entities = {Receita.class, User.class}, version = 2, exportSchema = false)
+@Database(
+        entities = {Receita.class, User.class},
+        version = 4, // ALTERADO: Versão incrementada de 3 para 4
+        exportSchema = true
+)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ReceitaDao receitaDao();
     public abstract UserDao userDao();
@@ -27,7 +29,6 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "receitas_app_db")
-                            // Adicione isso para lidar com a migração de versão (solução simples)
                             .fallbackToDestructiveMigration()
                             .build();
                 }

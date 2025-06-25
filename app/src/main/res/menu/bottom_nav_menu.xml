@@ -7,12 +7,15 @@
     <item
         android:id="@+id/navigation_ai_chat"
         android:icon="@drawable/ic_chatbot"
-        android:title="IA" /> <item
-    android:id="@+id/navigation_add_recipe"
-    android:icon="@drawable/ic_add_recipe" android:title="Adicionar" /> <item
-    android:id="@+id/navigation_favorites"
-    android:icon="@drawable/ic_favorite"
-    android:title="Favoritos" />
+        android:title="IA" />
+    <item
+        android:id="@+id/navigation_add_recipe"
+        android:icon="@drawable/ic_add_recipe"
+        android:title="Adicionar" />
+    <item
+        android:id="@+id/navigation_favorites"
+        android:icon="@drawable/ic_favorite"
+        android:title="Minhas Receitas" />
     <item
         android:id="@+id/navigation_profile"
         android:icon="@drawable/ic_profile"

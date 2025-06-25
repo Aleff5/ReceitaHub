@@ -162,6 +162,14 @@
         app:layout_constraintStart_toStartOf="@id/main_search_view"
         app:layout_constraintTop_toBottomOf="@id/btn_popular_recipes" />
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/category_buttons_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:constraint_referenced_ids="main_search_view,btn_popular_recipes,btn_quick_recipes,btn_healthy_recipes,btn_vegan_recipes,btn_daily_recipe,btn_news"
+        tools:ignore="MissingConstraints" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/ai_input_container"
         android:layout_width="0dp"
@@ -236,13 +244,16 @@
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:menu="@menu/bottom_nav_menu"
-        app:labelVisibilityMode="labeled"
+        android:background="@color/card_background"
         app:itemIconTint="@color/bottom_nav_item_selector"
         app:itemTextColor="@color/bottom_nav_item_selector"
-        android:background="@color/card_background"
+        app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:menu="@menu/bottom_nav_menu"
+
+        app:itemTextAppearanceActive="@style/BottomNav.Custom.TextAppearance"
+        app:itemTextAppearanceInactive="@style/BottomNav.Custom.TextAppearance" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

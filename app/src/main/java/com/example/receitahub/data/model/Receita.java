@@ -4,7 +4,6 @@ import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
-
 @Entity(tableName = "receitas",
         foreignKeys = @ForeignKey(entity = User.class,
                 parentColumns = "id",
@@ -19,17 +18,21 @@ public class Receita {
     public String ingredientes;
     public String modoDePreparo;
     public long timestamp;
-    public String tipo;
+
+    // ALTERADO: O campo 'tipo' foi renomeado para 'status' para consistência
+    public String status;
+
     public boolean isFavorita;
 
     public Receita() {}
 
-    public Receita(long userId, String titulo, String ingredientes, String modoDePreparo, String tipo) {
+    // ALTERADO: O construtor agora aceita 'status' em vez de 'tipo'
+    public Receita(long userId, String titulo, String ingredientes, String modoDePreparo, String status) {
         this.userId = userId;
         this.titulo = titulo;
         this.ingredientes = ingredientes;
         this.modoDePreparo = modoDePreparo;
-        this.tipo = tipo;
+        this.status = status; // O parâmetro 'status' é atribuído ao campo 'status'
         this.isFavorita = false;
         this.timestamp = System.currentTimeMillis();
     }

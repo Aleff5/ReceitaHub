@@ -33,7 +33,9 @@ public class SessionManager {
         return prefs.getLong(KEY_USER_ID, -1);
     }
 
-    public void logout() {
+    // ALTERADO: O método foi renomeado de "logout" para "clearSession" para corresponder
+    // à chamada na ProfileEditActivity.
+    public void clearSession() {
         editor.clear();
         editor.apply();
     }

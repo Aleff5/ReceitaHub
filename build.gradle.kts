@@ -1,10 +1,11 @@
-// In C:\Users\aleff\AndroidStudioProjects\ReceitaHub\build.gradle.kts
+// No seu arquivo build.gradle.kts (Project: ReceitaHub)
 
-// Make sure the version is NOT hardcoded here.
-// Instead, use the alias and set 'apply false'.
 plugins {
-    // This line applies the plugin to sub-projects, referencing the version from libs.versions.toml
     alias(libs.plugins.android.application) apply false
-    // You might have other plugins here, like for Kotlin
-    // alias(libs.plugins.kotlin.android) apply false
+
+    // ADICIONADO: Define a versão do plugin Kotlin para todo o projeto
+    id("org.jetbrains.kotlin.android") version "1.9.23" apply false
+
+    // ADICIONADO: Define a versão do plugin KSP para todo o projeto
+    id("com.google.devtools.ksp") version "1.9.23-1.0.19" apply false
 }

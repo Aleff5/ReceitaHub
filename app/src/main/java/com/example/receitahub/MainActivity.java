@@ -9,9 +9,15 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.constraintlayout.widget.Group;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.transition.TransitionManager;
 
 import com.example.receitahub.adapter.ChatAdapter;
 import com.example.receitahub.data.model.Mensagem;
@@ -30,6 +36,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     // Componentes da UI
+    private ConstraintLayout mainLayout;
+    private Group categoryButtonsGroup;
     private SearchView mainSearchView;
     private Button btnPopularRecipes, btnQuickRecipes, btnHealthyRecipes, btnVeganRecipes, btnDailyRecipe, btnNews;
     private RecyclerView aiChatRecyclerView;
@@ -48,25 +56,38 @@ public class MainActivity extends AppCompatActivity {
     private ReceitaDao receitaDao;
     private final Executor executor = Executors.newSingleThreadExecutor();
 
-    // Flag para saber se a próxima resposta da IA é uma lista de sugestões
-    private boolean isAwaitingSuggestionList = false;
+    private boolean isChatModeActive = false;
+    private OnBackPressedCallback onBackPressedCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Inicializações
-        geminiService = new GeminiService();
+        // Inicializa os serviços
         sessionManager = new SessionManager(getApplicationContext());
         receitaDao = AppDatabase.getDatabase(getApplicationContext()).receitaDao();
+        geminiService = new GeminiService();
+        geminiService.iniciarChat(); // Inicia o chat com as instruções do sistema
 
+        // Configura a UI
         iniciarComponentes();
         configurarListeners();
         configurarChatRecyclerView();
+
+        // Configura o botão "Voltar" do sistema
+        onBackPressedCallback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                showHomeMode();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, onBackPressedCallback);
     }
 
     private void iniciarComponentes() {
+        mainLayout = findViewById(R.id.main_layout);
+        categoryButtonsGroup = findViewById(R.id.category_buttons_group);
         mainSearchView = findViewById(R.id.main_search_view);
         btnPopularRecipes = findViewById(R.id.btn_popular_recipes);
         btnQuickRecipes = findViewById(R.id.btn_quick_recipes);
@@ -74,23 +95,23 @@ public class MainActivity extends AppCompatActivity {
         btnVeganRecipes = findViewById(R.id.btn_vegan_recipes);
         btnDailyRecipe = findViewById(R.id.btn_daily_recipe);
         btnNews = findViewById(R.id.btn_news);
-
         aiChatRecyclerView = findViewById(R.id.ai_chat_recycler_view);
         aiMessageEditText = findViewById(R.id.ai_message_edit_text);
         aiSendButton = findViewById(R.id.ai_send_button);
         aiLoadingIndicator = findViewById(R.id.ai_loading_indicator);
         bottomNavigation = findViewById(R.id.bottom_navigation);
-
-        aiChatRecyclerView.setVisibility(View.VISIBLE);
     }
 
     private void configurarListeners() {
-        // MUDANÇA 1: Novo listener para os botões de categoria
+        // Listener para os botões de categoria
         View.OnClickListener categoryClickListener = v -> {
+            if (!isChatModeActive) {
+                showChatMode(); // Entra no modo de chat se não estiver nele
+            }
             Button b = (Button) v;
             String categoria = b.getText().toString();
-            // Inicia a conversa com a IA pedindo sugestões para a categoria clicada
-            pedirSugestoesParaCategoria(categoria);
+            String promptParaIA = "Me dê uma receita de " + categoria.toLowerCase();
+            enviarMensagem(promptParaIA);
         };
 
         btnPopularRecipes.setOnClickListener(categoryClickListener);
@@ -100,35 +121,38 @@ public class MainActivity extends AppCompatActivity {
         btnDailyRecipe.setOnClickListener(categoryClickListener);
         btnNews.setOnClickListener(categoryClickListener);
 
-        // Listener para o botão de enviar mensagem (sem alteração)
+        // Listener para quando o campo de texto da IA ganha foco
+        aiMessageEditText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && !isChatModeActive) {
+                showChatMode();
+            }
+        });
+
+        // Listener para o botão de enviar
         aiSendButton.setOnClickListener(v -> {
             String mensagemTexto = aiMessageEditText.getText().toString().trim();
             if (!mensagemTexto.isEmpty()) {
-                // Ao enviar uma mensagem, assumimos que não estamos mais esperando uma lista.
-                isAwaitingSuggestionList = false;
                 enviarMensagem(mensagemTexto);
             }
         });
 
-        // Listener para a barra de navegação inferior (sem alteração)
+        // Listener para a barra de navegação inferior
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.navigation_home) {
-                Toast.makeText(this, "Home Clicado", Toast.LENGTH_SHORT).show();
+                if (isChatModeActive) showHomeMode();
                 return true;
             } else if (itemId == R.id.navigation_favorites) {
-                Toast.makeText(this, "Favoritos Clicado", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(MainActivity.this, MyRecipesActivity.class));
                 return true;
             } else if (itemId == R.id.navigation_profile) {
-                Intent intent = new Intent(MainActivity.this, ProfileEditActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(MainActivity.this, ProfileEditActivity.class));
                 return true;
             } else if (itemId == R.id.navigation_add_recipe) {
-                Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(MainActivity.this, AddRecipeActivity.class));
                 return true;
             } else if (itemId == R.id.navigation_ai_chat) {
-                Toast.makeText(this, "Chat IA já está visível.", Toast.LENGTH_SHORT).show();
+                if (!isChatModeActive) showChatMode();
                 return true;
             }
             return false;
@@ -142,74 +166,38 @@ public class MainActivity extends AppCompatActivity {
         aiChatRecyclerView.setAdapter(chatAdapter);
     }
 
-    // MUDANÇA 2: Novo método para iniciar a conversa a partir de um botão de categoria
-    private void pedirSugestoesParaCategoria(String categoria) {
-        // Define que a próxima resposta da IA deve ser tratada como uma lista de sugestões
-        isAwaitingSuggestionList = true;
-
-        // Exibe a ação do usuário no chat
-        String textoUsuario = "Me dê sugestões de " + categoria.toLowerCase();
-        Mensagem mensagemUsuario = new Mensagem(textoUsuario, true);
-        mensagemList.add(mensagemUsuario);
-        chatAdapter.notifyItemInserted(mensagemList.size() - 1);
-        aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
-
-        // Chama o método `enviarMensagem` para fazer a requisição à IA
-        enviarMensagem(textoUsuario);
-    }
-
     private void enviarMensagem(String texto) {
         if (!sessionManager.isLoggedIn() && sessionManager.getChatInteractionCount() >= 5) {
             Toast.makeText(this, "Você atingiu o limite de 5 mensagens. Faça login para continuar.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // Se a mensagem não for de um clique de botão, adiciona ao chat.
-        // Se for de um clique, já foi adicionada em `pedirSugestoesParaCategoria`.
-        boolean isFromCategoryClick = isAwaitingSuggestionList;
-        if (!isFromCategoryClick) {
-            Mensagem mensagemUsuario = new Mensagem(texto, true);
-            mensagemList.add(mensagemUsuario);
-            chatAdapter.notifyItemInserted(mensagemList.size() - 1);
-            aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
-        }
+        // Adiciona a mensagem do usuário à lista e notifica o adapter
+        Mensagem mensagemUsuario = new Mensagem(texto, true);
+        mensagemList.add(mensagemUsuario);
+        chatAdapter.notifyItemInserted(mensagemList.size() - 1);
+        aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
 
         aiMessageEditText.setText("");
         aiLoadingIndicator.setVisibility(View.VISIBLE);
 
-        // MUDANÇA 3: O prompt agora depende se estamos pedindo uma lista ou uma receita completa
-        String prompt;
-        if (isAwaitingSuggestionList) {
-            prompt = "Aja como um assistente de culinária. Liste 5 nomes de '" + texto + "', um por linha, e nada mais. Exemplo: 'Nome da Receita 1\\nNome da Receita 2'";
-        } else {
-            prompt = "Aja como um assistente de culinária. Crie uma receita completa baseada no seguinte pedido do usuário: '" + texto + "'. " +
-                    "Formate sua resposta da seguinte maneira, e nada mais: " +
-                    "###TÍTULO### [Título da Receita] " +
-                    "###INGREDIENTES### [Lista de ingredientes, um por linha] " +
-                    "###MODOPREPARO### [Passos do modo de preparo]";
-        }
-
-        geminiService.gerarConteudo(prompt, executor, new GeminiService.GeminiCallback() {
+        // Chama o método correto do serviço de chat
+        geminiService.enviarMensagemNoChat(texto, executor, new GeminiService.GeminiCallback() {
             @Override
             public void onSuccess(String response) {
                 if (!sessionManager.isLoggedIn()) {
                     sessionManager.incrementChatInteractionCount();
                 }
 
-                String finalResponse;
-                // MUDANÇA 4: Trata a resposta de forma diferente se for uma lista
-                if (isAwaitingSuggestionList) {
-                    finalResponse = "Claro! Aqui estão algumas sugestões:\n\n" + response;
-                    // Depois de receber a lista, a próxima mensagem será uma receita completa
-                    isAwaitingSuggestionList = false;
-                } else {
-                    if (sessionManager.isLoggedIn()) {
-                        salvarReceitaGerada(response, sessionManager.getUserId());
-                    }
-                    finalResponse = response.replace("###TÍTULO###", "Título:")
-                            .replace("###INGREDIENTES###", "\n\nIngredientes:")
-                            .replace("###MODOPREPARO###", "\n\nModo de Preparo:");
+                // Se a resposta contiver o formato de receita e o usuário estiver logado, salva no banco
+                if (response.contains("###TÍTULO###") && sessionManager.isLoggedIn()) {
+                    salvarReceitaGerada(response, sessionManager.getUserId());
                 }
+
+                // Formata a resposta para exibição
+                String finalResponse = response.replace("###TÍTULO###", "Título:")
+                        .replace("###INGREDIENTES###", "\n\nIngredientes:")
+                        .replace("###MODOPREPARO###", "\n\nModo de Preparo:");
 
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
@@ -224,8 +212,7 @@ public class MainActivity extends AppCompatActivity {
             public void onError(Exception e) {
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
-                    isAwaitingSuggestionList = false; // Reseta a flag em caso de erro
-                    Toast.makeText(MainActivity.this, "Falha ao contatar a IA. Tente novamente.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Falha ao contatar a IA: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -244,5 +231,38 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void showChatMode() {
+        if (isChatModeActive) return;
+        isChatModeActive = true;
+        onBackPressedCallback.setEnabled(true);
+
+        bottomNavigation.setSelectedItemId(R.id.navigation_ai_chat);
+        categoryButtonsGroup.setVisibility(View.GONE);
+        aiChatRecyclerView.setVisibility(View.VISIBLE);
+
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(mainLayout);
+        constraintSet.connect(R.id.ai_chat_recycler_view, ConstraintSet.TOP, R.id.tv_app_title, ConstraintSet.BOTTOM, 16);
+        TransitionManager.beginDelayedTransition(mainLayout);
+        constraintSet.applyTo(mainLayout);
+    }
+
+    private void showHomeMode() {
+        if (!isChatModeActive) return;
+        isChatModeActive = false;
+        onBackPressedCallback.setEnabled(false);
+
+        bottomNavigation.setSelectedItemId(R.id.navigation_home);
+        categoryButtonsGroup.setVisibility(View.VISIBLE);
+        aiChatRecyclerView.setVisibility(View.GONE);
+
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(mainLayout);
+        constraintSet.connect(R.id.ai_chat_recycler_view, ConstraintSet.TOP, R.id.btn_news, ConstraintSet.BOTTOM, 8);
+        aiMessageEditText.clearFocus();
+        TransitionManager.beginDelayedTransition(mainLayout);
+        constraintSet.applyTo(mainLayout);
     }
 }

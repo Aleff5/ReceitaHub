@@ -11,7 +11,7 @@ import com.example.receitahub.db.dao.UserDao;
 
 @Database(
         entities = {Receita.class, User.class},
-        version = 5, // ALTERADO: Versão incrementada de 4 para 5
+        version = 6, // ALTERADO: Versão incrementada de 5 para 6
         exportSchema = true
 )
 public abstract class AppDatabase extends RoomDatabase {

@@ -18,22 +18,22 @@ public class Receita {
     public String ingredientes;
     public String modoDePreparo;
     public long timestamp;
-
-    // ALTERADO: O campo 'tipo' foi renomeado para 'status' para consistência
     public String status;
-
     public boolean isFavorita;
+
+    // ADICIONADO: Campo para o tipo de refeição (ex: Café da manhã, Almoço, etc.)
+    public String mealType;
 
     public Receita() {}
 
-    // ALTERADO: O construtor agora aceita 'status' em vez de 'tipo'
     public Receita(long userId, String titulo, String ingredientes, String modoDePreparo, String status) {
         this.userId = userId;
         this.titulo = titulo;
         this.ingredientes = ingredientes;
         this.modoDePreparo = modoDePreparo;
-        this.status = status; // O parâmetro 'status' é atribuído ao campo 'status'
+        this.status = status;
         this.isFavorita = false;
         this.timestamp = System.currentTimeMillis();
+        // O campo mealType será definido posteriormente, ao adicionar uma receita manualmente.
     }
 }

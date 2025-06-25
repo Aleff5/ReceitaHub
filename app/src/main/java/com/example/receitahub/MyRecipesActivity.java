@@ -1,9 +1,9 @@
 package com.example.receitahub;
 
 import android.os.Bundle;
+import android.widget.ImageView; // Importe a ImageView
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar; // Importe a Toolbar
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.receitahub.adapter.ViewPagerAdapter;
@@ -17,11 +17,10 @@ public class MyRecipesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_recipes);
 
-        // --- ADICIONADO: Lógica da Toolbar ---
-        Toolbar toolbar = findViewById(R.id.toolbar_my_recipes);
-        // Configura o listener de clique para o ícone de navegação (a seta de voltar)
-        toolbar.setNavigationOnClickListener(v -> {
-            // finish() fecha a tela atual e volta para a anterior (MainActivity)
+        // --- LÓGICA DA TOOLBAR ALTERADA ---
+        ImageView backButton = findViewById(R.id.iv_toolbar_back);
+        backButton.setOnClickListener(v -> {
+            // finish() fecha a tela atual e volta para a anterior
             finish();
         });
         // --- FIM DA LÓGICA DA TOOLBAR ---

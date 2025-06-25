@@ -13,6 +13,22 @@ import com.example.receitahub.data.model.Receita;
 
 public class RecipeAdapter extends ListAdapter<Receita, RecipeAdapter.RecipeViewHolder> {
 
+    // --- INÍCIO DAS ALTERAÇÕES ---
+
+    // 1. Criamos uma interface para o listener de clique
+    public interface OnItemClickListener {
+        void onItemClick(Receita receita);
+    }
+
+    private OnItemClickListener listener;
+
+    // 2. Criamos um método para que a Activity/Fragment possa "registrar" o listener
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    // --- FIM DAS ALTERAÇÕES ---
+
     public RecipeAdapter() {
         super(DIFF_CALLBACK);
     }
@@ -48,9 +64,15 @@ public class RecipeAdapter extends ListAdapter<Receita, RecipeAdapter.RecipeView
         public RecipeViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTitle = itemView.findViewById(R.id.tv_recipe_title);
-            // Futuramente, você pode adicionar um listener de clique aqui para
-            // abrir os detalhes de uma receita quando o usuário clicar nela.
-            // itemView.setOnClickListener(v -> ... );
+
+            // 3. Adicionamos o OnClickListener ao item da lista
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                // Garante que a posição é válida e que o listener foi configurado
+                if (listener != null && position != RecyclerView.NO_POSITION) {
+                    listener.onItemClick(getItem(position));
+                }
+            });
         }
     }
 }

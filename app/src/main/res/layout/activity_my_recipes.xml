@@ -17,11 +17,39 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_my_recipes"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="Minhas Receitas"
-            app:titleTextColor="@color/white_text"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@color/white_text"/>
+            android:layout_height="100dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/iv_toolbar_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="@color/white_text"
+                    android:padding="8dp"
+                    android:layout_marginTop="16dp"  app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <TextView
+                    android:id="@+id/tv_toolbar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Minhas Receitas"
+                    android:textColor="@color/white_text"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/poppins_medium"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp" app:layout_constraintStart_toEndOf="@id/iv_toolbar_back"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -30,9 +58,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/card_background"
-        app:tabTextColor="@color/hint_text"
-        app:tabSelectedTextColor="@color/orange_primary"
-        app:tabIndicatorColor="@color/orange_primary" />
+        app:tabSelectedTextColor="@color/white_text"
+        app:tabIndicatorColor="@color/orange_primary"
+        app:tabTextColor="@color/white_text" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"

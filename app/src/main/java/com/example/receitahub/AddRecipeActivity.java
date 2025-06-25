@@ -1,6 +1,5 @@
 package com.example.receitahub;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,7 +20,8 @@ import java.util.concurrent.Executors;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
-    private EditText etRecipeName, etIngredients;
+    // MODIFICADO: Adicionado EditText para modo de preparo
+    private EditText etRecipeName, etIngredients, etModoDePreparo;
     private RadioGroup rgMealType;
     private Button btnAddRecipe;
     private ImageView ivBackButton;
@@ -33,7 +33,8 @@ public class AddRecipeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.addrecipeactivity);
+        // Supondo que o nome do seu layout é activity_add_recipe.xml
+        setContentView(R.layout.activity_add_recipe);
 
         // Inicializa DAO e SessionManager
         receitaDao = AppDatabase.getDatabase(getApplicationContext()).receitaDao();
@@ -43,6 +44,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         etRecipeName = findViewById(R.id.et_recipe_name);
         rgMealType = findViewById(R.id.rg_meal_type);
         etIngredients = findViewById(R.id.et_ingredients);
+        etModoDePreparo = findViewById(R.id.et_modo_de_preparo); // Mapeia o novo campo
         btnAddRecipe = findViewById(R.id.btn_add_recipe);
         ivBackButton = findViewById(R.id.iv_back_button);
 
@@ -54,30 +56,31 @@ public class AddRecipeActivity extends AppCompatActivity {
     private void addRecipe() {
         String recipeName = etRecipeName.getText().toString().trim();
         String ingredients = etIngredients.getText().toString().trim();
+        String modoDePreparo = etModoDePreparo.getText().toString().trim(); // Lê o modo de preparo
         String mealType = "";
+
         int selectedId = rgMealType.getCheckedRadioButtonId();
         if (selectedId != -1) {
             mealType = ((RadioButton) findViewById(selectedId)).getText().toString();
         }
 
-        if (recipeName.isEmpty() || ingredients.isEmpty() || mealType.isEmpty()) {
+        if (recipeName.isEmpty() || ingredients.isEmpty() || mealType.isEmpty() || modoDePreparo.isEmpty()) {
             Toast.makeText(this, "Todos os campos são obrigatórios.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Verifica se o usuário está logado antes de salvar
         if (!sessionManager.isLoggedIn()) {
             Toast.makeText(this, "Você precisa estar logado para adicionar uma receita.", Toast.LENGTH_LONG).show();
-            // Opcional: Redirecionar para a tela de login
-            // startActivity(new Intent(this, ProfileEditActivity.class));
             return;
         }
 
         long userId = sessionManager.getUserId();
-        String modoDePreparo = "Modo de preparo a ser adicionado."; // Você pode adicionar um campo para isso
 
-        // Constrói o objeto Receita com o tipo "CRIADA"
+        // Constrói o objeto Receita com o status "CRIADA"
         Receita novaReceita = new Receita(userId, recipeName, ingredients, modoDePreparo, "CRIADA");
+
+        // ALTERAÇÃO PRINCIPAL: Atribui o tipo de refeição ao objeto antes de salvar
+        novaReceita.mealType = mealType;
 
         executor.execute(() -> {
             receitaDao.salvarReceita(novaReceita);

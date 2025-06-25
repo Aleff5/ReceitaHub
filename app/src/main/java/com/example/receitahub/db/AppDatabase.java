@@ -1,20 +1,17 @@
 package com.example.receitahub.db;
 
 import android.content.Context;
-
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-
 import com.example.receitahub.data.model.Receita;
 import com.example.receitahub.db.dao.ReceitaDao;
 import com.example.receitahub.data.model.User;
 import com.example.receitahub.db.dao.UserDao;
 
-
 @Database(
         entities = {Receita.class, User.class},
-        version = 4, // ALTERADO: Versão incrementada de 3 para 4
+        version = 5, // ALTERADO: Versão incrementada de 4 para 5
         exportSchema = true
 )
 public abstract class AppDatabase extends RoomDatabase {

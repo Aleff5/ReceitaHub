@@ -49,29 +49,16 @@ public class GeminiService {
         this.chat = generativeModel.startChat(chatHistory);
     }
 
-<<<<<<< HEAD
 
-=======
-    /**
-     * MÉTODO CORRIGIDO
-     */
->>>>>>> 210fafdd5e78a39d3b2fe57ad04e2fa74d032c4a
     public void enviarMensagemNoChat(String prompt, Executor executor, GeminiCallback callback) {
         if (chat == null) {
             callback.onError(new IllegalStateException("O chat não foi iniciado. Chame iniciarChat() primeiro."));
             return;
         }
 
-<<<<<<< HEAD
 
         Content promptContent = new Content.Builder().addText(prompt).build();
 
-=======
-        // 1. Converte a String do prompt em um objeto Content
-        Content promptContent = new Content.Builder().addText(prompt).build();
-
-        // 2. Envia o objeto Content para o método sendMessage
->>>>>>> 210fafdd5e78a39d3b2fe57ad04e2fa74d032c4a
         ListenableFuture<GenerateContentResponse> future = chat.sendMessage(promptContent);
 
         Futures.addCallback(future, new FutureCallback<GenerateContentResponse>() {

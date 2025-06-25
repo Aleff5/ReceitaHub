@@ -2,7 +2,7 @@
 
 [versions]
 # Versão correta e única para o Android Gradle Plugin
-androidGradlePlugin = "8.8.1"
+androidGradlePlugin = "8.6.0" # <-- LINHA CORRIGIDA AQUI
 
 generativeai = "0.6.0"
 kotlinx-coroutines-guava = "1.8.0"

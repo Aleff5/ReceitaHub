@@ -22,6 +22,12 @@ import com.example.receitahub.db.dao.UserDao;
 import com.example.receitahub.util.SessionManager;
 import com.google.android.material.imageview.ShapeableImageView;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -33,19 +39,26 @@ public class ProfileEditActivity extends AppCompatActivity {
     private ImageView ivBackButton;
     private ShapeableImageView ivProfilePicture;
     private LinearLayout layoutPasswordFields;
-    private Uri selectedImageUri;
-
+    private Uri selectedImageUri; // Armazenará a URI da *cópia interna* da imagem
     private UserDao userDao;
     private SessionManager sessionManager;
     private final Executor executor = Executors.newSingleThreadExecutor();
     private User currentUser;
 
+    // Launcher para buscar conteúdo (imagens) da galeria
     private final ActivityResultLauncher<String> getContent = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             uri -> {
+                // Quando o usuário seleciona uma imagem, esta parte é executada
                 if (uri != null) {
-                    selectedImageUri = uri;
-                    ivProfilePicture.setImageURI(selectedImageUri);
+                    // Copia a imagem para o armazenamento interno e obtém a nova URI
+                    Uri internalUri = copyImageToInternalStorage(uri);
+                    if (internalUri != null) {
+                        selectedImageUri = internalUri;
+                        ivProfilePicture.setImageURI(selectedImageUri);
+                    } else {
+                        Toast.makeText(this, "Falha ao carregar a imagem.", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
     );
@@ -69,17 +82,31 @@ public class ProfileEditActivity extends AppCompatActivity {
         }
     }
 
-    private void iniciarComponentes() {
-        etEmail = findViewById(R.id.et_email);
-        etPassword = findViewById(R.id.et_password);
-        etConfirmPassword = findViewById(R.id.et_confirm_password);
-        etName = findViewById(R.id.et_name);
-        btnAuthAction = findViewById(R.id.btn_auth_action);
-        tvToggleAuthMode = findViewById(R.id.tv_toggle_auth_mode);
-        tvAuthTitle = findViewById(R.id.tv_auth_title);
-        ivBackButton = findViewById(R.id.iv_back_button);
-        ivProfilePicture = findViewById(R.id.iv_profile_picture);
-        layoutPasswordFields = findViewById(R.id.layout_password_fields);
+    // MÉTODO ESSENCIAL: Copia a imagem para o armazenamento privado do app
+    private Uri copyImageToInternalStorage(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            if (inputStream == null) return null;
+
+            // Cria um arquivo de destino único no diretório privado do app
+            File destinationFile = new File(getFilesDir(), "profile_" + UUID.randomUUID().toString() + ".jpg");
+            OutputStream outputStream = new FileOutputStream(destinationFile);
+
+            // Copia os bytes da imagem original para o novo arquivo
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buf)) > 0) {
+                outputStream.write(buf, 0, len);
+            }
+            inputStream.close();
+            outputStream.close();
+
+            // Retorna a Uri do NOVO arquivo, para o qual temos permissão permanente
+            return Uri.fromFile(destinationFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void setupProfileView() {
@@ -98,14 +125,14 @@ public class ProfileEditActivity extends AppCompatActivity {
             currentUser = userDao.getUserById(userId);
             runOnUiThread(() -> {
                 if (currentUser != null) {
-                    // ALTERADO: Acessando o campo diretamente
                     etName.setText(currentUser.nome);
                     etEmail.setText(currentUser.email);
                     etEmail.setEnabled(false);
-                    // ALTERADO: Acessando o campo diretamente
+                    // Carrega a imagem do arquivo interno, não da galeria
                     if (currentUser.profilePictureUri != null) {
-                        selectedImageUri = Uri.parse(currentUser.profilePictureUri);
-                        ivProfilePicture.setImageURI(selectedImageUri);
+                        Uri imageUri = Uri.parse(currentUser.profilePictureUri);
+                        selectedImageUri = imageUri;
+                        ivProfilePicture.setImageURI(imageUri);
                     }
                 }
             });
@@ -114,6 +141,20 @@ public class ProfileEditActivity extends AppCompatActivity {
         ivProfilePicture.setOnClickListener(v -> getContent.launch("image/*"));
         btnAuthAction.setOnClickListener(v -> saveChanges());
         tvToggleAuthMode.setOnClickListener(v -> logoutUser());
+    }
+
+    // ... o resto dos seus métodos (iniciarComponentes, saveChanges, setupLoginView, etc.)
+    private void iniciarComponentes() {
+        etEmail = findViewById(R.id.et_email);
+        etPassword = findViewById(R.id.et_password);
+        etConfirmPassword = findViewById(R.id.et_confirm_password);
+        etName = findViewById(R.id.et_name);
+        btnAuthAction = findViewById(R.id.btn_auth_action);
+        tvToggleAuthMode = findViewById(R.id.tv_toggle_auth_mode);
+        tvAuthTitle = findViewById(R.id.tv_auth_title);
+        ivBackButton = findViewById(R.id.iv_back_button);
+        ivProfilePicture = findViewById(R.id.iv_profile_picture);
+        layoutPasswordFields = findViewById(R.id.layout_password_fields);
     }
 
     private void saveChanges() {
@@ -128,8 +169,8 @@ public class ProfileEditActivity extends AppCompatActivity {
             return;
         }
 
-        // ALTERADO: Acessando os campos diretamente
         currentUser.nome = nome;
+        // Salva a string da URI do nosso arquivo interno
         if (selectedImageUri != null) {
             currentUser.profilePictureUri = selectedImageUri.toString();
         }
@@ -152,14 +193,45 @@ public class ProfileEditActivity extends AppCompatActivity {
     }
 
     private void setupLoginView() {
-        // ... (este método permanece o mesmo)
+        tvAuthTitle.setText("Login");
+        btnAuthAction.setText("Entrar");
+        etEmail.setVisibility(View.VISIBLE);
+        layoutPasswordFields.setVisibility(View.VISIBLE);
+        etPassword.setHint("Senha");
+        etConfirmPassword.setVisibility(View.GONE);
+        ivProfilePicture.setVisibility(View.GONE);
+        etName.setVisibility(View.GONE);
+        btnAuthAction.setOnClickListener(v -> loginUser());
+        tvToggleAuthMode.setText("Não tem uma conta? Cadastre-se.");
+        tvToggleAuthMode.setOnClickListener(v -> startActivity(new Intent(ProfileEditActivity.this, RegisterActivity.class)));
     }
 
     private void logoutUser() {
-        // ... (este método permanece o mesmo)
+        sessionManager.clearSession();
+        Toast.makeText(this, "Você saiu.", Toast.LENGTH_SHORT).show();
+        recreate();
     }
 
     private void loginUser() {
-        // ... (sua lógica de login existente permanece a mesma)
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+
+        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+            Toast.makeText(this, "Email e senha são obrigatórios.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        executor.execute(() -> {
+            User user = userDao.getUserByEmailAndPassword(email, password);
+            runOnUiThread(() -> {
+                if (user != null) {
+                    sessionManager.saveSession(user.id);
+                    Toast.makeText(ProfileEditActivity.this, "Login bem-sucedido!", Toast.LENGTH_SHORT).show();
+                    recreate();
+                } else {
+                    Toast.makeText(ProfileEditActivity.this, "Email ou senha inválidos.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
     }
 }

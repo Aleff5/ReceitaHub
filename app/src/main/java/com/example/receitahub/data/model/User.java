@@ -1,5 +1,7 @@
 package com.example.receitahub.data.model;
 
+import androidx.annotation.NonNull;   // IMPORTE ADICIONADO
+import androidx.annotation.Nullable; // IMPORTE ADICIONADO
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -9,22 +11,23 @@ public class User {
     @PrimaryKey(autoGenerate = true)
     public long id;
 
-    // CAMPO ADICIONADO
+    // ANOTAÇÕES ADICIONADAS
+    @NonNull
     public String nome;
 
+    @NonNull
     public String email;
+
+    @NonNull
     public String password; // Em um app real, isso deveria ser um hash!
 
-    // CAMPO ADICIONADO
+    @Nullable // Diz ao Room que este campo pode ser nulo
     public String profilePictureUri;
 
-    /**
-     * CONSTRUTOR ATUALIZADO para incluir o nome.
-     * O profilePictureUri pode ser adicionado depois.
-     */
-    public User(String nome, String email, String password) {
+    public User(@NonNull String nome, @NonNull String email, @NonNull String password) {
         this.nome = nome;
         this.email = email;
         this.password = password;
+        // O campo profilePictureUri agora pode ser nulo por padrão sem causar erros.
     }
 }

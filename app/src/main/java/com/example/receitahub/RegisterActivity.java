@@ -22,7 +22,8 @@ import java.util.concurrent.Executors;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
+    // ADICIONADO: Campo para o nome
+    private EditText etRegisterName, etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
     private Button btnRegisterAction;
     private TextView tvBackToLogin;
     private ImageView ivRegisterBackButton;
@@ -35,10 +36,10 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        // Inicializa o DAO do banco de dados
         userDao = AppDatabase.getDatabase(getApplicationContext()).userDao();
 
-        // Mapeia os componentes da UI
+        // ADICIONADO: Mapeamento do novo campo
+        etRegisterName = findViewById(R.id.et_register_name);
         etRegisterEmail = findViewById(R.id.et_register_email);
         etRegisterPassword = findViewById(R.id.et_register_password);
         etRegisterConfirmPassword = findViewById(R.id.et_register_confirm_password);
@@ -46,23 +47,27 @@ public class RegisterActivity extends AppCompatActivity {
         tvBackToLogin = findViewById(R.id.tv_back_to_login);
         ivRegisterBackButton = findViewById(R.id.iv_register_back_button);
 
-        // Configura os listeners de clique
         setupListeners();
     }
 
     private void setupListeners() {
         btnRegisterAction.setOnClickListener(v -> registerUser());
-
-        tvBackToLogin.setOnClickListener(v -> finish()); // Volta para a tela de login
+        tvBackToLogin.setOnClickListener(v -> finish());
         ivRegisterBackButton.setOnClickListener(v -> finish());
     }
 
     private void registerUser() {
+        // ADICIONADO: Leitura do campo de nome
+        String nome = etRegisterName.getText().toString().trim();
         String email = etRegisterEmail.getText().toString().trim();
         String password = etRegisterPassword.getText().toString().trim();
         String confirmPassword = etRegisterConfirmPassword.getText().toString().trim();
 
-        // Validações
+        // ADICIONADO: Validação do nome
+        if (TextUtils.isEmpty(nome)) {
+            etRegisterName.setError("O nome é obrigatório.");
+            return;
+        }
         if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etRegisterEmail.setError("Por favor, insira um email válido.");
             return;
@@ -76,23 +81,19 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Executa a operação de banco de dados em uma thread de fundo
         executor.execute(() -> {
-            // Verifica se o usuário já existe
             if (userDao.getUserByEmail(email) != null) {
                 runOnUiThread(() -> Toast.makeText(RegisterActivity.this, "Este email já está cadastrado.", Toast.LENGTH_SHORT).show());
                 return;
             }
 
-            // Cria e insere o novo usuário
-            // AVISO: Em um app real, a senha NUNCA deve ser salva em texto puro. Use hashing (ex: BCrypt).
-            User newUser = new User(email, password);
+            // ALTERADO: A chamada do construtor agora inclui o nome
+            User newUser = new User(nome, email, password);
             userDao.insertUser(newUser);
 
-            // Volta para a thread principal para mostrar a mensagem e finalizar
             runOnUiThread(() -> {
                 Toast.makeText(RegisterActivity.this, "Conta criada com sucesso! Faça o login.", Toast.LENGTH_LONG).show();
-                finish(); // Fecha a tela de cadastro e volta para a de login
+                finish();
             });
         });
     }

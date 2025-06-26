@@ -39,23 +39,22 @@ public class ProfileEditActivity extends AppCompatActivity {
     private ImageView ivBackButton;
     private ShapeableImageView ivProfilePicture;
     private LinearLayout layoutPasswordFields;
-    private Uri selectedImageUri; // Armazenará a URI da *cópia interna* da imagem
+    private Uri selectedImageUri;
     private UserDao userDao;
     private SessionManager sessionManager;
     private final Executor executor = Executors.newSingleThreadExecutor();
     private User currentUser;
 
-    // Launcher para buscar conteúdo (imagens) da galeria
     private final ActivityResultLauncher<String> getContent = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             uri -> {
-                // Quando o usuário seleciona uma imagem, esta parte é executada
                 if (uri != null) {
-                    // Copia a imagem para o armazenamento interno e obtém a nova URI
                     Uri internalUri = copyImageToInternalStorage(uri);
                     if (internalUri != null) {
                         selectedImageUri = internalUri;
                         ivProfilePicture.setImageURI(selectedImageUri);
+                        // ADICIONADO: Remove a tinta cinza para mostrar a foto real
+                        ivProfilePicture.setImageTintList(null);
                     } else {
                         Toast.makeText(this, "Falha ao carregar a imagem.", Toast.LENGTH_SHORT).show();
                     }
@@ -82,17 +81,12 @@ public class ProfileEditActivity extends AppCompatActivity {
         }
     }
 
-    // MÉTODO ESSENCIAL: Copia a imagem para o armazenamento privado do app
     private Uri copyImageToInternalStorage(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
             if (inputStream == null) return null;
-
-            // Cria um arquivo de destino único no diretório privado do app
             File destinationFile = new File(getFilesDir(), "profile_" + UUID.randomUUID().toString() + ".jpg");
             OutputStream outputStream = new FileOutputStream(destinationFile);
-
-            // Copia os bytes da imagem original para o novo arquivo
             byte[] buf = new byte[1024];
             int len;
             while ((len = inputStream.read(buf)) > 0) {
@@ -100,8 +94,6 @@ public class ProfileEditActivity extends AppCompatActivity {
             }
             inputStream.close();
             outputStream.close();
-
-            // Retorna a Uri do NOVO arquivo, para o qual temos permissão permanente
             return Uri.fromFile(destinationFile);
         } catch (IOException e) {
             e.printStackTrace();
@@ -113,11 +105,9 @@ public class ProfileEditActivity extends AppCompatActivity {
         tvAuthTitle.setText("Editar Perfil");
         btnAuthAction.setText("Salvar Alterações");
         etPassword.setHint("Nova Senha (opcional)");
-
         ivProfilePicture.setVisibility(View.VISIBLE);
         etName.setVisibility(View.VISIBLE);
         layoutPasswordFields.setVisibility(View.VISIBLE);
-
         tvToggleAuthMode.setText("Sair (Logout)");
 
         long userId = sessionManager.getUserId();
@@ -128,11 +118,12 @@ public class ProfileEditActivity extends AppCompatActivity {
                     etName.setText(currentUser.nome);
                     etEmail.setText(currentUser.email);
                     etEmail.setEnabled(false);
-                    // Carrega a imagem do arquivo interno, não da galeria
                     if (currentUser.profilePictureUri != null) {
                         Uri imageUri = Uri.parse(currentUser.profilePictureUri);
                         selectedImageUri = imageUri;
                         ivProfilePicture.setImageURI(imageUri);
+                        // ADICIONADO: Remove a tinta cinza para mostrar a foto salva
+                        ivProfilePicture.setImageTintList(null);
                     }
                 }
             });
@@ -143,23 +134,8 @@ public class ProfileEditActivity extends AppCompatActivity {
         tvToggleAuthMode.setOnClickListener(v -> logoutUser());
     }
 
-    // ... o resto dos seus métodos (iniciarComponentes, saveChanges, setupLoginView, etc.)
-    private void iniciarComponentes() {
-        etEmail = findViewById(R.id.et_email);
-        etPassword = findViewById(R.id.et_password);
-        etConfirmPassword = findViewById(R.id.et_confirm_password);
-        etName = findViewById(R.id.et_name);
-        btnAuthAction = findViewById(R.id.btn_auth_action);
-        tvToggleAuthMode = findViewById(R.id.tv_toggle_auth_mode);
-        tvAuthTitle = findViewById(R.id.tv_auth_title);
-        ivBackButton = findViewById(R.id.iv_back_button);
-        ivProfilePicture = findViewById(R.id.iv_profile_picture);
-        layoutPasswordFields = findViewById(R.id.layout_password_fields);
-    }
-
     private void saveChanges() {
         if (currentUser == null) return;
-
         String nome = etName.getText().toString().trim();
         String novaSenha = etPassword.getText().toString();
         String confirmaSenha = etConfirmPassword.getText().toString();
@@ -168,13 +144,10 @@ public class ProfileEditActivity extends AppCompatActivity {
             Toast.makeText(this, "O nome não pode ficar em branco.", Toast.LENGTH_SHORT).show();
             return;
         }
-
         currentUser.nome = nome;
-        // Salva a string da URI do nosso arquivo interno
         if (selectedImageUri != null) {
             currentUser.profilePictureUri = selectedImageUri.toString();
         }
-
         if (!novaSenha.isEmpty()) {
             if (!novaSenha.equals(confirmaSenha)) {
                 Toast.makeText(this, "As novas senhas não coincidem.", Toast.LENGTH_SHORT).show();
@@ -182,7 +155,6 @@ public class ProfileEditActivity extends AppCompatActivity {
             }
             currentUser.password = novaSenha;
         }
-
         executor.execute(() -> {
             userDao.updateUser(currentUser);
             runOnUiThread(() -> {
@@ -220,7 +192,6 @@ public class ProfileEditActivity extends AppCompatActivity {
             Toast.makeText(this, "Email e senha são obrigatórios.", Toast.LENGTH_SHORT).show();
             return;
         }
-
         executor.execute(() -> {
             User user = userDao.getUserByEmailAndPassword(email, password);
             runOnUiThread(() -> {
@@ -233,5 +204,18 @@ public class ProfileEditActivity extends AppCompatActivity {
                 }
             });
         });
+    }
+
+    private void iniciarComponentes() {
+        etEmail = findViewById(R.id.et_email);
+        etPassword = findViewById(R.id.et_password);
+        etConfirmPassword = findViewById(R.id.et_confirm_password);
+        etName = findViewById(R.id.et_name);
+        btnAuthAction = findViewById(R.id.btn_auth_action);
+        tvToggleAuthMode = findViewById(R.id.tv_toggle_auth_mode);
+        tvAuthTitle = findViewById(R.id.tv_auth_title);
+        ivBackButton = findViewById(R.id.iv_back_button);
+        ivProfilePicture = findViewById(R.id.iv_profile_picture);
+        layoutPasswordFields = findViewById(R.id.layout_password_fields);
     }
 }

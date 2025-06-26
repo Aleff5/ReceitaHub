@@ -33,23 +33,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Componentes da UI
     private ConstraintLayout mainLayout;
     private Group categoryButtonsGroup;
     private SearchView mainSearchView;
-    private Button btnPopularRecipes, btnQuickRecipes, btnHealthyRecipes, btnVeganRecipes, btnDailyRecipe, btnNews;
+    private Button btnPopularRecipes, btnQuickRecipes, btnHealthyRecipes, btnVeganRecipes, btnDailyRecipe, btnNews,
+            btnBreakfast, btnLunch, btnDinner, btnDessert; // Botões adicionados
     private RecyclerView aiChatRecyclerView;
     private EditText aiMessageEditText;
     private ImageButton aiSendButton;
     private ProgressBar aiLoadingIndicator;
     private BottomNavigationView bottomNavigation;
 
+    // Variáveis do Chat
     private List<Mensagem> mensagemList;
     private ChatAdapter chatAdapter;
     private GeminiService geminiService;
 
+    // Componentes de Dados e Sessão
     private SessionManager sessionManager;
     private ReceitaDao receitaDao;
     private final Executor executor = Executors.newSingleThreadExecutor();
@@ -80,18 +86,13 @@ public class MainActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, onBackPressedCallback);
     }
 
-    // MÉTODO DA SOLUÇÃO - LÓGICA EXPANDIDA
-    // Este método agora garante que o ícone correto ("Início" ou "IA") seja
-    // selecionado sempre que a tela principal volta a ficar em primeiro plano.
     @Override
     protected void onResume() {
         super.onResume();
         if (bottomNavigation != null) {
             if (isChatModeActive) {
-                // Se estávamos no modo chat, garante que o ícone "IA" fique selecionado.
                 bottomNavigation.setSelectedItemId(R.id.navigation_ai_chat);
             } else {
-                // Caso contrário, garante que o ícone "Início" fique selecionado.
                 bottomNavigation.setSelectedItemId(R.id.navigation_home);
             }
         }
@@ -107,6 +108,12 @@ public class MainActivity extends AppCompatActivity {
         btnVeganRecipes = findViewById(R.id.btn_vegan_recipes);
         btnDailyRecipe = findViewById(R.id.btn_daily_recipe);
         btnNews = findViewById(R.id.btn_news);
+        // ADICIONADO: Mapeamento dos novos botões
+        btnBreakfast = findViewById(R.id.btn_breakfast);
+        btnLunch = findViewById(R.id.btn_lunch);
+        btnDinner = findViewById(R.id.btn_dinner);
+        btnDessert = findViewById(R.id.btn_dessert);
+
         aiChatRecyclerView = findViewById(R.id.ai_chat_recycler_view);
         aiMessageEditText = findViewById(R.id.ai_message_edit_text);
         aiSendButton = findViewById(R.id.ai_send_button);
@@ -121,9 +128,7 @@ public class MainActivity extends AppCompatActivity {
             }
             Button b = (Button) v;
             String categoria = b.getText().toString();
-
             String promptParaIA = "Me dê uma receita de " + categoria.toLowerCase();
-
             enviarMensagem(promptParaIA);
         };
 
@@ -133,6 +138,11 @@ public class MainActivity extends AppCompatActivity {
         btnVeganRecipes.setOnClickListener(categoryClickListener);
         btnDailyRecipe.setOnClickListener(categoryClickListener);
         btnNews.setOnClickListener(categoryClickListener);
+        // ADICIONADO: Configuração dos listeners para os novos botões
+        btnBreakfast.setOnClickListener(categoryClickListener);
+        btnLunch.setOnClickListener(categoryClickListener);
+        btnDinner.setOnClickListener(categoryClickListener);
+        btnDessert.setOnClickListener(categoryClickListener);
 
         aiMessageEditText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus && !isChatModeActive) {
@@ -174,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
         chatAdapter = new ChatAdapter(mensagemList);
         aiChatRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         aiChatRecyclerView.setAdapter(chatAdapter);
+
         chatAdapter.setOnFavoriteClickListener(mensagem -> {
             if (sessionManager.isLoggedIn()) {
                 salvarReceitaFavorita(mensagem.getTexto(), sessionManager.getUserId());
@@ -204,14 +215,20 @@ public class MainActivity extends AppCompatActivity {
                     sessionManager.incrementChatInteractionCount();
                 }
 
-                String normalizedResponse = response
-                        .replace("##TÍTULO##", "Título;")
+                boolean isRecipeMessage = response.contains("###TÍTULO###") || response.contains("##TÍTULO##")
+                        || response.contains("###INGREDIENTES###") || response.contains("##INGREDIENTES##")
+                        || response.contains("###MODOPREPARO###") || response.contains("##MODOPREPARO##");
+
+                String finalResponse = response.replace("##TÍTULO##", "Título:")
+                        .replace("###TÍTULO###", "Título:")
                         .replace("##INGREDIENTES##", "\n\nIngredientes:")
-                        .replace("##MODOPREPARO##", "\n\nModo de Preparo;");
+                        .replace("###INGREDIENTES###", "\n\nIngredientes:")
+                        .replace("##MODOPREPARO##", "\n\nModo de Preparo:")
+                        .replace("###MODOPREPARO###", "\n\nModo de Preparo:");
 
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
-                    Mensagem mensagemIA = new Mensagem(normalizedResponse, false);
+                    Mensagem mensagemIA = new Mensagem(finalResponse, false, isRecipeMessage);
                     mensagemList.add(mensagemIA);
                     chatAdapter.notifyItemInserted(mensagemList.size() - 1);
                     aiChatRecyclerView.scrollToPosition(mensagemList.size() - 1);
@@ -228,33 +245,52 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // ALTERADO: Lógica de extração de texto reescrita para ser mais robusta
     private void salvarReceitaFavorita(String rawResponse, long userId) {
-        Log.d("DEBUG_RECEITA", "Texto completo recebido para salvar: " + rawResponse);
-
         try {
-            String searchableResponse = rawResponse.toLowerCase();
+            // Primeiro, removemos os marcadores de formatação para limpar o texto
+            String cleanedResponse = rawResponse.replace("###", "").replace("##", "").replace("#", "");
 
-            String ingredientesDelim = "ingredientes:";
-            String modoPreparoDelim = "modo de preparo;";
+            String titulo = "";
+            String ingredientes = "";
+            String modoPreparo = "";
 
-            int idxIngredientes = searchableResponse.indexOf(ingredientesDelim);
-            int idxModoPreparo = searchableResponse.indexOf(modoPreparoDelim);
+            // Define os delimitadores que separam as seções da receita
+            String tituloDelim = "Título:";
+            String ingredientesDelim = "Ingredientes:";
+            String modoPreparoDelim = "Modo de Preparo:";
 
-            if (idxIngredientes == -1 || idxModoPreparo == -1) {
-                throw new IllegalArgumentException("Formato de receita inválido. Faltam seções de Ingredientes ou Modo de Preparo.");
+            // A IA pode não enviar a palavra "Título:", então tratamos os dois casos
+            if (cleanedResponse.contains(tituloDelim)) {
+                // Se tiver "Título:", extrai a partir daí
+                int idxTitulo = cleanedResponse.indexOf(tituloDelim);
+                int idxIngredientes = cleanedResponse.indexOf(ingredientesDelim);
+                if (idxTitulo != -1 && idxIngredientes != -1) {
+                    titulo = cleanedResponse.substring(idxTitulo + tituloDelim.length(), idxIngredientes).trim();
+                }
+            } else {
+                // Se não, assume que a primeira linha é o título
+                int firstLineBreak = cleanedResponse.indexOf("\n");
+                if (firstLineBreak != -1) {
+                    titulo = cleanedResponse.substring(0, firstLineBreak).trim();
+                } else {
+                    // Caso de emergência se não houver quebra de linha
+                    titulo = cleanedResponse.split(ingredientesDelim)[0].trim();
+                }
             }
 
-            String titulo = rawResponse.substring(0, idxIngredientes).trim();
-            titulo = titulo.replace("Título;", "").trim();
+            // Extrai ingredientes e modo de preparo
+            int idxIngredientes = cleanedResponse.indexOf(ingredientesDelim);
+            int idxModoPreparo = cleanedResponse.indexOf(modoPreparoDelim);
 
-            int endIdxIngredientes = idxIngredientes + ingredientesDelim.length();
-            String ingredientes = rawResponse.substring(endIdxIngredientes, idxModoPreparo).trim();
+            if (idxIngredientes != -1 && idxModoPreparo != -1) {
+                ingredientes = cleanedResponse.substring(idxIngredientes + ingredientesDelim.length(), idxModoPreparo).trim();
+                modoPreparo = cleanedResponse.substring(idxModoPreparo + modoPreparoDelim.length()).trim();
+            }
 
-            int endIdxModoPreparo = idxModoPreparo + modoPreparoDelim.length();
-            String modoPreparo = rawResponse.substring(endIdxModoPreparo).trim();
-
+            // Validação final
             if (titulo.isEmpty() || ingredientes.isEmpty() || modoPreparo.isEmpty()) {
-                throw new IllegalArgumentException("Uma ou mais seções da receita estavam vazias após a extração.");
+                throw new IllegalArgumentException("Falha ao extrair uma ou mais seções da receita.");
             }
 
             Receita receitaFavorita = new Receita(userId, titulo, ingredientes, modoPreparo, "GERADA");
@@ -269,7 +305,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Erro ao processar a receita. O formato é inválido.", Toast.LENGTH_LONG).show();
         }
     }
-
 
     private void showChatMode() {
         if (isChatModeActive) return;
@@ -294,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
         aiChatRecyclerView.setVisibility(View.GONE);
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(mainLayout);
-        constraintSet.connect(R.id.ai_chat_recycler_view, ConstraintSet.TOP, R.id.btn_news, ConstraintSet.BOTTOM, 8);
+        constraintSet.connect(R.id.ai_chat_recycler_view, ConstraintSet.TOP, R.id.btn_dessert, ConstraintSet.BOTTOM, 8); // Ajustado para o último botão
         aiMessageEditText.clearFocus();
         TransitionManager.beginDelayedTransition(mainLayout);
         constraintSet.applyTo(mainLayout);

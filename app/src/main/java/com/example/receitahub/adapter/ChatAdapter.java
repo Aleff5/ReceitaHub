@@ -83,20 +83,20 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         void bind(Mensagem mensagem) {
-            String textoMensagem = mensagem.getTexto();
-            messageText.setText(textoMensagem);
+            messageText.setText(mensagem.getTexto());
 
-            // LINHA ALTERADA: Lógica de verificação agora é case-insensitive e usa a pontuação correta (ponto e vírgula),
-            // alinhando-se perfeitamente com a lógica de salvamento no MainActivity.
-            String lowerCaseText = textoMensagem.toLowerCase();
-            if (lowerCaseText.contains("ingredientes:") && lowerCaseText.contains("modo de preparo;")) {
+            // ALTERADO: A condição agora usa o método isRecipe(), que é 100% confiável
+            if (mensagem.isRecipe()) {
                 favoriteButton.setVisibility(View.VISIBLE);
+
+                // Reseta o estado do botão para o caso de o RecyclerView reutilizar a view
                 favoriteButton.setImageResource(R.drawable.ic_favorite);
                 favoriteButton.setEnabled(true);
 
                 favoriteButton.setOnClickListener(v -> {
                     if (favoriteClickListener != null) {
                         favoriteClickListener.onFavoriteClick(mensagem);
+                        // Feedback visual: troca o ícone e desabilita o botão
                         favoriteButton.setImageResource(R.drawable.ic_favorite_filled);
                         favoriteButton.setEnabled(false);
                     }

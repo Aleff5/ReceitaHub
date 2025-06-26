@@ -1,10 +1,16 @@
 package com.example.receitahub.data.model;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+// ALTERADO: Adicionado um índice para a coluna 'userId' para melhorar a performance
 @Entity(tableName = "receitas",
+        indices = {@Index(value = "userId")},
         foreignKeys = @ForeignKey(entity = User.class,
                 parentColumns = "id",
                 childColumns = "userId",
@@ -12,28 +18,34 @@ import androidx.room.PrimaryKey;
 public class Receita {
     @PrimaryKey(autoGenerate = true)
     public int id;
-
     public long userId;
+    @NonNull
     public String titulo;
+    @NonNull
     public String ingredientes;
+    @NonNull
     public String modoDePreparo;
-    public long timestamp;
+    @NonNull
     public String status;
-    public boolean isFavorita;
-
-    // ADICIONADO: Campo para o tipo de refeição (ex: Café da manhã, Almoço, etc.)
+    @Nullable
     public String mealType;
 
+    // ADICIONADO DE VOLTA: Campo para saber se a receita é favorita
+    public boolean isFavorita;
+    // ADICIONADO DE VOLTA: Campo para registrar o momento da criação
+    public long timestamp;
+
+    // ALTERADO: Este construtor agora será ignorado pelo Room para evitar ambiguidades
+    @Ignore
     public Receita() {}
 
-    public Receita(long userId, String titulo, String ingredientes, String modoDePreparo, String status) {
+    public Receita(long userId, @NonNull String titulo, @NonNull String ingredientes, @NonNull String modoDePreparo, @NonNull String status) {
         this.userId = userId;
         this.titulo = titulo;
         this.ingredientes = ingredientes;
         this.modoDePreparo = modoDePreparo;
         this.status = status;
-        this.isFavorita = false;
-        this.timestamp = System.currentTimeMillis();
-        // O campo mealType será definido posteriormente, ao adicionar uma receita manualmente.
+        this.isFavorita = false; // Valor padrão
+        this.timestamp = System.currentTimeMillis(); // Valor padrão
     }
 }

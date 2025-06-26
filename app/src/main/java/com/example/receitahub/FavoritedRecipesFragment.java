@@ -1,6 +1,6 @@
 package com.example.receitahub;
 
-import android.content.Intent; // IMPORTE ADICIONADO
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.receitahub.adapter.RecipeAdapter;
-import com.example.receitahub.data.model.Receita; // IMPORTE ADICIONADO
+import com.example.receitahub.data.model.Receita;
 import com.example.receitahub.db.AppDatabase;
 
 public class FavoritedRecipesFragment extends Fragment {
@@ -32,21 +32,19 @@ public class FavoritedRecipesFragment extends Fragment {
         final RecipeAdapter adapter = new RecipeAdapter();
         recyclerView.setAdapter(adapter);
 
-        // Busca e observa as receitas favoritadas (geradas pela IA)
         AppDatabase db = AppDatabase.getDatabase(getContext());
-        db.receitaDao().findByStatus("GERADA").observe(getViewLifecycleOwner(), receitas -> {
+
+        // ALTERADO: Usa a nova consulta para buscar apenas receitas marcadas como favoritas
+        db.receitaDao().getFavoritas().observe(getViewLifecycleOwner(), receitas -> {
             adapter.submitList(receitas);
         });
 
-        // ADICIONADO: Lógica de clique para cada item da lista
+        // Lógica de clique para cada item da lista (já estava correta)
         adapter.setOnItemClickListener(new RecipeAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Receita receita) {
-                // Cria uma Intent (intenção) para abrir a tela de detalhes
                 Intent intent = new Intent(getActivity(), RecipeDetailActivity.class);
-                // Passa o ID da receita clicada para a próxima tela
                 intent.putExtra("RECIPE_ID", receita.id);
-                // Inicia a nova tela
                 startActivity(intent);
             }
         });

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 import com.example.receitahub.data.model.Receita;
 import java.util.List;
 
@@ -13,8 +14,12 @@ public interface ReceitaDao {
     @Insert
     void salvarReceita(Receita receita);
 
+    @Update
+    void updateReceita(Receita receita); // Adicionei um método de update para consistência
+
+    // ALTERADO: Método renomeado para maior clareza
     @Query("SELECT * FROM receitas ORDER BY timestamp DESC")
-    LiveData<List<Receita>> getTodasReceitasFavoritas();
+    LiveData<List<Receita>> getTodasReceitas();
 
     @Query("SELECT * FROM receitas WHERE id = :receitaId")
     Receita getReceitaPorId(int receitaId);
@@ -22,7 +27,9 @@ public interface ReceitaDao {
     @Query("DELETE FROM receitas WHERE id = :receitaId")
     void deletarReceita(int receitaId);
 
-    // ADICIONADO: Query para buscar receitas por status
     @Query("SELECT * FROM receitas WHERE status = :status ORDER BY id DESC")
     LiveData<List<Receita>> findByStatus(String status);
+
+    @Query("SELECT * FROM receitas WHERE isFavorita = 1 ORDER BY timestamp DESC")
+    LiveData<List<Receita>> getFavoritas();
 }

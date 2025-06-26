@@ -14,23 +14,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="16dp"
         android:contentDescription="Voltar"
         android:padding="16dp"
         android:src="@drawable/ic_arrow_back"
-        app:tint="@color/white_text"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/white_text" />
 
     <TextView
         android:id="@+id/tv_add_recipe_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="52dp"
         android:fontFamily="@font/poppins_medium"
         android:text="Adicionar Nova Receita"
         android:textColor="@color/white_text"
-        android:textSize="28sp"
+        android:textSize="27sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

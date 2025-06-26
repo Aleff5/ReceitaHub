@@ -18,7 +18,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int VIEW_TYPE_AI = 2;
 
     public interface OnFavoriteClickListener {
-        void onFavoriteClick(Mensagem mensagem);
+        void onFavoriteClick(Mensagem mensagem, int position);
     }
     private OnFavoriteClickListener favoriteClickListener;
 
@@ -85,20 +85,19 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         void bind(Mensagem mensagem) {
             messageText.setText(mensagem.getTexto());
 
-            // ALTERADO: A condição agora usa o método isRecipe(), que é 100% confiável
             if (mensagem.isRecipe()) {
                 favoriteButton.setVisibility(View.VISIBLE);
-
-                // Reseta o estado do botão para o caso de o RecyclerView reutilizar a view
                 favoriteButton.setImageResource(R.drawable.ic_favorite);
                 favoriteButton.setEnabled(true);
 
                 favoriteButton.setOnClickListener(v -> {
                     if (favoriteClickListener != null) {
-                        favoriteClickListener.onFavoriteClick(mensagem);
-                        // Feedback visual: troca o ícone e desabilita o botão
-                        favoriteButton.setImageResource(R.drawable.ic_favorite_filled);
-                        favoriteButton.setEnabled(false);
+                        int position = getAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION) {
+                            favoriteClickListener.onFavoriteClick(mensagem, position);
+                            favoriteButton.setImageResource(R.drawable.ic_favorite_filled);
+                            favoriteButton.setEnabled(false);
+                        }
                     }
                 });
             } else {

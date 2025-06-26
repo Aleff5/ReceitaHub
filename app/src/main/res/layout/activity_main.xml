@@ -27,7 +27,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="24dp"
         android:background="@drawable/rounded_edittext_background"
         android:iconifiedByDefault="false"
@@ -38,211 +38,215 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_app_title" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_vertical_center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
-
-    <Button
-        android:id="@+id/btn_quick_recipes"
-        style="@style/Widget.Material3.Button.ElevatedButton"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/buttons_scroll_view"
         android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginStart="8dp"
+        android:layout_height="0dp"
         android:layout_marginTop="12dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:maxLines="3"
-        android:text="Receitas Rápidas"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toEndOf="@id/main_search_view"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
-        app:layout_constraintTop_toBottomOf="@id/main_search_view" />
+        app:layout_constraintTop_toBottomOf="@id/main_search_view"
+        app:layout_constraintBottom_toTopOf="@id/ai_input_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <Button
-        android:id="@+id/btn_popular_recipes"
-        style="@style/Widget.Material3.Button.ElevatedButton"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="16dp">
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline_vertical_center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.5" />
+
+            <Button
+                android:id="@+id/btn_popular_recipes"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="4dp"
+                android:text="Receitas Populares"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_quick_recipes"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="24dp"
+                android:backgroundTint="@color/orange_primary"
+                android:text="Receitas Rápidas"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/btn_healthy_recipes"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="4dp"
+                android:text="Receitas Saudáveis"
+                app:layout_constraintTop_toBottomOf="@id/btn_popular_recipes"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_vegan_recipes"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="24dp"
+                android:text="Receitas Veganas"
+                app:layout_constraintTop_toBottomOf="@id/btn_quick_recipes"
+                app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_daily_recipe"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:text="Receita do Dia"
+                app:layout_constraintTop_toBottomOf="@id/btn_healthy_recipes"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_news"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:text="Novidades"
+                app:layout_constraintTop_toBottomOf="@id/btn_daily_recipe"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_breakfast"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="4dp"
+                android:text="Café da Manhã"
+                app:layout_constraintTop_toBottomOf="@id/btn_news"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_lunch"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="24dp"
+                android:text="Almoço"
+                app:layout_constraintTop_toBottomOf="@id/btn_news"
+                app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_dinner"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="4dp"
+                android:text="Jantar"
+                app:layout_constraintTop_toBottomOf="@id/btn_breakfast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+            <Button
+                android:id="@+id/btn_dessert"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="24dp"
+                android:text="Sobremesa"
+                app:layout_constraintTop_toBottomOf="@id/btn_lunch"
+                app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:backgroundTint="@color/orange_primary"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                app:cornerRadius="16dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/ai_chat_recycler_view"
         android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:maxLines="3"
-        android:text="Receitas Populares"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@id/main_search_view"
-        app:layout_constraintTop_toBottomOf="@id/main_search_view" />
-
-    <Button
-        android:id="@+id/btn_healthy_recipes"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:maxLines="3"
-        android:text="Receitas Saudáveis"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@id/main_search_view"
-        app:layout_constraintTop_toBottomOf="@id/btn_popular_recipes" />
-
-    <Button
-        android:id="@+id/btn_vegan_recipes"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="7dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:maxLines="3"
-        android:text="Receitas Veganas"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toEndOf="@id/main_search_view"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
-        app:layout_constraintTop_toBottomOf="@id/btn_quick_recipes" />
-
-    <Button
-        android:id="@+id/btn_daily_recipe"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="7dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:maxLines="3"
-        android:text="Receita do Dia"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toEndOf="@id/main_search_view"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@id/main_search_view"
-        app:layout_constraintTop_toBottomOf="@id/btn_healthy_recipes" />
-
-    <Button
-        android:id="@+id/btn_news"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="7dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:maxLines="3"
-        android:text="Novidades"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toEndOf="@id/main_search_view"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@id/main_search_view"
-        app:layout_constraintTop_toBottomOf="@id/btn_daily_recipe" />
-
-    <Button
-        android:id="@+id/btn_breakfast"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:text="Café da Manhã"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
-        app:layout_constraintStart_toStartOf="@id/main_search_view"
-        app:layout_constraintTop_toBottomOf="@id/btn_news" />
-
-    <Button
-        android:id="@+id/btn_lunch"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="7dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:text="Almoço"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toEndOf="@id/main_search_view"
-        app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
-        app:layout_constraintTop_toBottomOf="@id/btn_news" />
-
-    <Button
-        android:id="@+id/btn_dinner"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:text="Jantar"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toStartOf="@id/guideline_vertical_center"
-        app:layout_constraintStart_toStartOf="@id/main_search_view"
-        app:layout_constraintTop_toBottomOf="@id/btn_breakfast" />
-
-    <Button
-        android:id="@+id/btn_dessert"
-        style="@style/Widget.Material3.Button.ElevatedButton"
-        android:layout_width="0dp"
-        android:layout_height="93dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="7dp"
-        android:backgroundTint="@color/orange_primary"
-        android:fontFamily="@font/poppins_medium"
-        android:text="Sobremesa"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:cornerRadius="16dp"
-        app:layout_constraintEnd_toEndOf="@id/main_search_view"
-        app:layout_constraintStart_toEndOf="@id/guideline_vertical_center"
-        app:layout_constraintTop_toBottomOf="@id/btn_lunch" />
-
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/tv_app_title"
+        app:layout_constraintBottom_toTopOf="@id/ai_input_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/category_buttons_group"
+        android:id="@+id/home_content_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="visible"
-        app:constraint_referenced_ids="main_search_view,btn_popular_recipes,btn_quick_recipes,btn_healthy_recipes,btn_vegan_recipes,btn_daily_recipe,btn_news,btn_breakfast,btn_lunch,btn_dinner,btn_dessert"
-        tools:ignore="MissingConstraints" />
+        app:constraint_referenced_ids="main_search_view,buttons_scroll_view" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/ai_input_container"
@@ -298,35 +302,19 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/ai_chat_recycler_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:visibility="gone"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/btn_dinner"
-        app:layout_constraintBottom_toTopOf="@id/ai_input_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/item_chat_message_user" />
-
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:menu="@menu/bottom_nav_menu"
         android:background="@color/card_background"
         app:itemIconTint="@color/bottom_nav_item_selector"
         app:itemTextColor="@color/bottom_nav_item_selector"
         app:itemTextAppearanceActive="@style/BottomNav.Custom.TextAppearance"
         app:itemTextAppearanceInactive="@style/BottomNav.Custom.TextAppearance"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:labelVisibilityMode="labeled" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

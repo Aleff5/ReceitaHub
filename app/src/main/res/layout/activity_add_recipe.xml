@@ -18,9 +18,9 @@
         android:contentDescription="Voltar"
         android:padding="16dp"
         android:src="@drawable/ic_arrow_back"
+        app:tint="@color/white_text"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/white_text" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_add_recipe_title"
@@ -81,10 +81,11 @@
                 android:layout_marginTop="8dp"
                 android:orientation="vertical">
 
+                <!-- Botões com altura ajustada para diminuir o espaçamento -->
                 <RadioButton
                     android:id="@+id/rb_breakfast"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:buttonTint="@color/orange_primary"
                     android:fontFamily="@font/poppins"
                     android:text="Café da Manhã"
@@ -92,7 +93,7 @@
                 <RadioButton
                     android:id="@+id/rb_lunch"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:buttonTint="@color/orange_primary"
                     android:fontFamily="@font/poppins"
                     android:text="Almoço"
@@ -100,7 +101,7 @@
                 <RadioButton
                     android:id="@+id/rb_snack"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:buttonTint="@color/orange_primary"
                     android:fontFamily="@font/poppins"
                     android:text="Lanche"
@@ -108,10 +109,19 @@
                 <RadioButton
                     android:id="@+id/rb_dinner"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="36dp"
                     android:buttonTint="@color/orange_primary"
                     android:fontFamily="@font/poppins"
                     android:text="Jantar"
+                    android:textColor="@color/white_text" />
+                <!-- ADICIONADO: Botão para Sobremesa -->
+                <RadioButton
+                    android:id="@+id/rb_dessert"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:buttonTint="@color/orange_primary"
+                    android:fontFamily="@font/poppins"
+                    android:text="Sobremesa"
                     android:textColor="@color/white_text" />
             </RadioGroup>
 

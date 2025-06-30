@@ -9,6 +9,10 @@ import com.example.receitahub.db.dao.ReceitaDao;
 import com.example.receitahub.data.model.User;
 import com.example.receitahub.db.dao.UserDao;
 
+// Imports necessários para o Executor
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Database(
         entities = {Receita.class, User.class},
         version = 8,
@@ -19,6 +23,12 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract UserDao userDao();
 
     private static volatile AppDatabase INSTANCE;
+
+    // --- CÓDIGO ADICIONADO PARA CORRIGIR O ERRO 3 ---
+    private static final int NUMBER_OF_THREADS = 4;
+    public static final ExecutorService databaseWriteExecutor =
+            Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+    // ----------------------------------------------------
 
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {

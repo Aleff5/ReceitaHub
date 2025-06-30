@@ -1,21 +1,28 @@
 package com.example.receitahub;
 
-import android.content.Intent; // IMPORTE ADICIONADO
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.receitahub.adapter.RecipeAdapter;
-import com.example.receitahub.data.model.Receita; // IMPORTE ADICIONADO
+import com.example.receitahub.data.model.Receita;
 import com.example.receitahub.db.AppDatabase;
 
 public class CreatedRecipesFragment extends Fragment {
+
+    private AppDatabase db;
+    private RecipeAdapter adapter;
 
     @Nullable
     @Override
@@ -29,25 +36,37 @@ public class CreatedRecipesFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view_recipes);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        final RecipeAdapter adapter = new RecipeAdapter();
+        adapter = new RecipeAdapter();
         recyclerView.setAdapter(adapter);
 
-        // Busca e observa as receitas criadas pelo usuário
-        AppDatabase db = AppDatabase.getDatabase(getContext());
+        db = AppDatabase.getDatabase(getContext());
         db.receitaDao().findByStatus("CRIADA").observe(getViewLifecycleOwner(), receitas -> {
             adapter.submitList(receitas);
         });
 
-        // ADICIONADO: Lógica de clique para cada item da lista
         adapter.setOnItemClickListener(new RecipeAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Receita receita) {
-                // Cria uma Intent (intenção) para abrir a tela de detalhes
                 Intent intent = new Intent(getActivity(), RecipeDetailActivity.class);
-                // Passa o ID da receita clicada para a próxima tela
                 intent.putExtra("RECIPE_ID", receita.id);
-                // Inicia a nova tela
                 startActivity(intent);
+            }
+
+            // O MÉTODO onEditClick FOI REMOVIDO DESTA ÁREA
+
+            @Override
+            public void onDeleteClick(Receita receita) {
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Confirmar Exclusão")
+                        .setMessage("Tem certeza que deseja excluir a receita \"" + receita.titulo + "\"?")
+                        .setPositiveButton("Sim, Excluir", (dialog, which) -> {
+                            AppDatabase.databaseWriteExecutor.execute(() -> {
+                                db.receitaDao().delete(receita);
+                            });
+                            Toast.makeText(getContext(), "Receita excluída", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton("Cancelar", null)
+                        .show();
             }
         });
     }

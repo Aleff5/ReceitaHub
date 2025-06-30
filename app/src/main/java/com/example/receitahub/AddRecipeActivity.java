@@ -6,6 +6,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView; // Import necessário
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,43 +21,80 @@ import java.util.concurrent.Executors;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
-    // MODIFICADO: Adicionado EditText para modo de preparo
     private EditText etRecipeName, etIngredients, etModoDePreparo;
     private RadioGroup rgMealType;
     private Button btnAddRecipe;
     private ImageView ivBackButton;
+    private TextView tvAddRecipeTitle; // 1. Variável para o TextView do título
 
     private ReceitaDao receitaDao;
     private SessionManager sessionManager;
     private final Executor executor = Executors.newSingleThreadExecutor();
 
+    private int recipeId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Supondo que o nome do seu layout é activity_add_recipe.xml
         setContentView(R.layout.activity_add_recipe);
 
-        // Inicializa DAO e SessionManager
         receitaDao = AppDatabase.getDatabase(getApplicationContext()).receitaDao();
         sessionManager = new SessionManager(getApplicationContext());
 
-        // Mapeia componentes da UI
         etRecipeName = findViewById(R.id.et_recipe_name);
         rgMealType = findViewById(R.id.rg_meal_type);
         etIngredients = findViewById(R.id.et_ingredients);
-        etModoDePreparo = findViewById(R.id.et_modo_de_preparo); // Mapeia o novo campo
+        etModoDePreparo = findViewById(R.id.et_modo_de_preparo);
         btnAddRecipe = findViewById(R.id.btn_add_recipe);
         ivBackButton = findViewById(R.id.iv_back_button);
+        tvAddRecipeTitle = findViewById(R.id.tv_add_recipe_title); // 2. Mapeando o TextView do título
 
-        // Listeners
+        this.recipeId = getIntent().getIntExtra("RECIPE_ID", -1);
+
+        // 3. Lógica para definir o texto do TextView do título
+        if (this.recipeId != -1) {
+            // ID válido, entramos em modo de edição
+            tvAddRecipeTitle.setText("Editar Receita"); // Substituído o setTitle()
+            btnAddRecipe.setText("Salvar Alterações");
+            loadRecipeData();
+        } else {
+            // ID inválido, entramos em modo de criação
+            tvAddRecipeTitle.setText("Adicionar Nova Receita"); // Substituído o setTitle()
+        }
+
+
         ivBackButton.setOnClickListener(v -> finish());
-        btnAddRecipe.setOnClickListener(v -> addRecipe());
+        btnAddRecipe.setOnClickListener(v -> saveRecipe());
     }
 
-    private void addRecipe() {
+    private void loadRecipeData() {
+        executor.execute(() -> {
+            Receita receitaExistente = receitaDao.getReceitaById(recipeId);
+
+            if (receitaExistente != null) {
+                runOnUiThread(() -> {
+                    etRecipeName.setText(receitaExistente.titulo);
+                    etIngredients.setText(receitaExistente.ingredientes);
+                    etModoDePreparo.setText(receitaExistente.modoDePreparo);
+
+                    if (receitaExistente.mealType != null) {
+                        for (int i = 0; i < rgMealType.getChildCount(); i++) {
+                            RadioButton rb = (RadioButton) rgMealType.getChildAt(i);
+                            if (rb.getText().toString().equalsIgnoreCase(receitaExistente.mealType)) {
+                                rb.setChecked(true);
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private void saveRecipe() {
         String recipeName = etRecipeName.getText().toString().trim();
         String ingredients = etIngredients.getText().toString().trim();
-        String modoDePreparo = etModoDePreparo.getText().toString().trim(); // Lê o modo de preparo
+        String modoDePreparo = etModoDePreparo.getText().toString().trim();
         String mealType = "";
 
         int selectedId = rgMealType.getCheckedRadioButtonId();
@@ -70,24 +108,31 @@ public class AddRecipeActivity extends AppCompatActivity {
         }
 
         if (!sessionManager.isLoggedIn()) {
-            Toast.makeText(this, "Você precisa estar logado para adicionar uma receita.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Você precisa estar logado para salvar uma receita.", Toast.LENGTH_LONG).show();
             return;
         }
 
         long userId = sessionManager.getUserId();
 
-        // Constrói o objeto Receita com o status "CRIADA"
-        Receita novaReceita = new Receita(userId, recipeName, ingredients, modoDePreparo, "CRIADA");
-
-        // ALTERAÇÃO PRINCIPAL: Atribui o tipo de refeição ao objeto antes de salvar
-        novaReceita.mealType = mealType;
+        Receita receita = new Receita(userId, recipeName, ingredients, modoDePreparo, "CRIADA");
+        receita.mealType = mealType;
 
         executor.execute(() -> {
-            receitaDao.salvarReceita(novaReceita);
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Receita adicionada com sucesso!", Toast.LENGTH_LONG).show();
-                finish(); // Fecha a tela e volta para a anterior
-            });
+            if (recipeId != -1) {
+                receita.id = this.recipeId;
+
+                receitaDao.update(receita);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Receita atualizada com sucesso!", Toast.LENGTH_LONG).show();
+                    finish();
+                });
+            } else {
+                receitaDao.salvarReceita(receita);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Receita adicionada com sucesso!", Toast.LENGTH_LONG).show();
+                    finish();
+                });
+            }
         });
     }
 }

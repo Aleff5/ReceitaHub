@@ -1,5 +1,6 @@
 package com.example.receitahub;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,7 +15,10 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
     private TextView tvMealType, tvIngredients, tvInstructions, tvToolbarTitle;
     private ImageView ivBackButton;
+    private ImageView ivEditButton; // 1. Variável para o novo botão de editar
+
     private final Executor executor = Executors.newSingleThreadExecutor();
+    private int recipeId = -1; // 2. Variável para guardar o ID da receita atual
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,20 +27,33 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         // Mapeia os componentes do layout
         ivBackButton = findViewById(R.id.iv_detail_back_button);
+        ivEditButton = findViewById(R.id.iv_detail_edit_button); // Mapeia o novo botão
         tvToolbarTitle = findViewById(R.id.tv_detail_recipe_title_toolbar);
         tvMealType = findViewById(R.id.tv_detail_meal_type);
         tvIngredients = findViewById(R.id.tv_detail_ingredients);
         tvInstructions = findViewById(R.id.tv_detail_instructions);
 
-        // Configura o botão de voltar
         ivBackButton.setOnClickListener(v -> finish());
 
-        // Pega o ID da receita que foi passado pela tela anterior
-        int recipeId = getIntent().getIntExtra("RECIPE_ID", -1);
+        // 3. Pega o ID da receita e guarda na variável da classe
+        this.recipeId = getIntent().getIntExtra("RECIPE_ID", -1);
 
-        if (recipeId != -1) {
-            loadRecipeDetails(recipeId);
+        if (this.recipeId != -1) {
+            // Se o ID é válido, carrega os detalhes
+            loadRecipeDetails(this.recipeId);
+
+            // 4. Adiciona a lógica de clique ao botão de editar
+            ivEditButton.setOnClickListener(v -> {
+                // Cria uma intenção para abrir a tela de formulário
+                Intent intent = new Intent(RecipeDetailActivity.this, AddRecipeActivity.class);
+                // Anexa o ID da receita atual a essa intenção
+                intent.putExtra("RECIPE_ID", this.recipeId);
+                // Inicia a tela de formulário, que agora saberá que está em modo de edição
+                startActivity(intent);
+            });
+
         } else {
+            // Se o ID for inválido, mostra um erro e fecha a tela
             Toast.makeText(this, "Erro ao carregar receita.", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -45,13 +62,10 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private void loadRecipeDetails(int recipeId) {
         AppDatabase db = AppDatabase.getDatabase(this);
         executor.execute(() -> {
-            // Busca a receita no banco de dados
-            Receita receita = db.receitaDao().getReceitaPorId(recipeId);
+            Receita receita = db.receitaDao().getReceitaById(recipeId);
 
-            // Volta para a thread principal para atualizar a UI
             runOnUiThread(() -> {
                 if (receita != null) {
-                    // Define o título no nosso novo TextView
                     tvToolbarTitle.setText(receita.titulo);
                     tvMealType.setText(receita.mealType != null ? receita.mealType : "Não especificado");
                     tvIngredients.setText(receita.ingredientes);

@@ -15,10 +15,10 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
     private TextView tvMealType, tvIngredients, tvInstructions, tvToolbarTitle;
     private ImageView ivBackButton;
-    private ImageView ivEditButton; // 1. Variável para o novo botão de editar
+    private ImageView ivEditButton;
 
     private final Executor executor = Executors.newSingleThreadExecutor();
-    private int recipeId = -1; // 2. Variável para guardar o ID da receita atual
+    private int recipeId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +27,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         // Mapeia os componentes do layout
         ivBackButton = findViewById(R.id.iv_detail_back_button);
-        ivEditButton = findViewById(R.id.iv_detail_edit_button); // Mapeia o novo botão
+        ivEditButton = findViewById(R.id.iv_detail_edit_button);
         tvToolbarTitle = findViewById(R.id.tv_detail_recipe_title_toolbar);
         tvMealType = findViewById(R.id.tv_detail_meal_type);
         tvIngredients = findViewById(R.id.tv_detail_ingredients);
@@ -35,29 +35,35 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         ivBackButton.setOnClickListener(v -> finish());
 
-        // 3. Pega o ID da receita e guarda na variável da classe
         this.recipeId = getIntent().getIntExtra("RECIPE_ID", -1);
 
         if (this.recipeId != -1) {
-            // Se o ID é válido, carrega os detalhes
+            // A chamada inicial para carregar os dados continua aqui
             loadRecipeDetails(this.recipeId);
 
-            // 4. Adiciona a lógica de clique ao botão de editar
             ivEditButton.setOnClickListener(v -> {
-                // Cria uma intenção para abrir a tela de formulário
                 Intent intent = new Intent(RecipeDetailActivity.this, AddRecipeActivity.class);
-                // Anexa o ID da receita atual a essa intenção
                 intent.putExtra("RECIPE_ID", this.recipeId);
-                // Inicia a tela de formulário, que agora saberá que está em modo de edição
                 startActivity(intent);
             });
 
         } else {
-            // Se o ID for inválido, mostra um erro e fecha a tela
             Toast.makeText(this, "Erro ao carregar receita.", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
+
+    // --- MÉTODO ADICIONADO PARA ATUALIZAR A TELA ---
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Este método é chamado toda vez que a tela volta a ficar visível.
+        // Ele garante que os dados sejam recarregados do banco.
+        if (recipeId != -1) {
+            loadRecipeDetails(recipeId);
+        }
+    }
+    // ---------------------------------------------------
 
     private void loadRecipeDetails(int recipeId) {
         AppDatabase db = AppDatabase.getDatabase(this);

@@ -13,11 +13,12 @@ import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private final List<Mensagem> mensagemList;
+    private final List<Mensagem> messageList;
     private static final int VIEW_TYPE_USER = 1;
     private static final int VIEW_TYPE_AI = 2;
 
     public interface OnFavoriteClickListener {
+        // CORREÇÃO 1: Adicionado o parâmetro 'position' de volta
         void onFavoriteClick(Mensagem mensagem, int position);
     }
     private OnFavoriteClickListener favoriteClickListener;
@@ -26,13 +27,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.favoriteClickListener = listener;
     }
 
-    public ChatAdapter(List<Mensagem> mensagemList) {
-        this.mensagemList = mensagemList;
+    public ChatAdapter(List<Mensagem> messageList) {
+        this.messageList = messageList;
     }
 
     @Override
     public int getItemViewType(int position) {
-        return mensagemList.get(position).isEnviadoPeloUsuario() ? VIEW_TYPE_USER : VIEW_TYPE_AI;
+        return messageList.get(position).isEnviadoPeloUsuario() ? VIEW_TYPE_USER : VIEW_TYPE_AI;
     }
 
     @NonNull
@@ -49,7 +50,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        Mensagem mensagem = mensagemList.get(position);
+        Mensagem mensagem = messageList.get(position);
         if (holder.getItemViewType() == VIEW_TYPE_USER) {
             ((UserMessageViewHolder) holder).bind(mensagem);
         } else {
@@ -59,7 +60,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return mensagemList.size();
+        return messageList.size();
     }
 
     static class UserMessageViewHolder extends RecyclerView.ViewHolder {
@@ -85,23 +86,33 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         void bind(Mensagem mensagem) {
             messageText.setText(mensagem.getTexto());
 
-            if (mensagem.isRecipe()) {
-                favoriteButton.setVisibility(View.VISIBLE);
-                favoriteButton.setImageResource(R.drawable.ic_favorite);
-                favoriteButton.setEnabled(true);
+            if (favoriteButton != null) {
+                if (mensagem.isRecipe()) {
+                    favoriteButton.setVisibility(View.VISIBLE);
 
-                favoriteButton.setOnClickListener(v -> {
-                    if (favoriteClickListener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
-                            favoriteClickListener.onFavoriteClick(mensagem, position);
-                            favoriteButton.setImageResource(R.drawable.ic_favorite_filled);
-                            favoriteButton.setEnabled(false);
-                        }
+                    if (mensagem.isFavorited()) {
+                        favoriteButton.setImageResource(R.drawable.ic_favorite_filled);
+                        favoriteButton.setEnabled(false);
+                    } else {
+                        favoriteButton.setImageResource(R.drawable.ic_favorite);
+                        favoriteButton.setEnabled(true);
                     }
-                });
-            } else {
-                favoriteButton.setVisibility(View.GONE);
+
+                    favoriteButton.setOnClickListener(v -> {
+                        if (favoriteClickListener != null) {
+                            int position = getAdapterPosition();
+                            if (position != RecyclerView.NO_POSITION) {
+                                mensagem.setFavorited(true);
+                                notifyItemChanged(position);
+
+                                // CORREÇÃO 2: Adicionado o parâmetro 'position' de volta à chamada
+                                favoriteClickListener.onFavoriteClick(mensagem, position);
+                            }
+                        }
+                    });
+                } else {
+                    favoriteButton.setVisibility(View.GONE);
+                }
             }
         }
     }

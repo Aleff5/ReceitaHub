@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -94,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // MÉTODO RESTAURADO
     private void iniciarComponentes() {
         homeContentGroup = findViewById(R.id.home_content_group);
         btnPopularRecipes = findViewById(R.id.btn_popular_recipes);
@@ -114,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.bottom_navigation);
     }
 
-    // MÉTODO RESTAURADO
     private void configurarListeners() {
         View.OnClickListener categoryClickListener = v -> {
             if (!isChatModeActive) {
@@ -202,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
         return "Geral";
     }
 
+    // MÉTODO ATUALIZADO COM A LÓGICA DE DETECÇÃO CORRIGIDA
     private void enviarMensagem(String texto) {
         if (!sessionManager.isLoggedIn() && sessionManager.getChatInteractionCount() >= 5) {
             Toast.makeText(this, "Você atingiu o limite de 5 mensagens. Faça login para continuar.", Toast.LENGTH_LONG).show();
@@ -219,16 +219,22 @@ public class MainActivity extends AppCompatActivity {
                 if (!sessionManager.isLoggedIn()) {
                     sessionManager.incrementChatInteractionCount();
                 }
-                boolean isRecipeMessage = response.contains("###TÍTULO###") || response.contains("##TÍTULO##")
-                        || response.contains("###INGREDIENTES###") || response.contains("##INGREDIENTES##")
-                        || response.contains("###MODOPREPARO###") || response.contains("##MODOPREPARO##");
 
-                String finalResponse = response.replace("##TÍTULO##", "Título:")
+                // LÓGICA DE DETECÇÃO DE RECEITA TORNADA MAIS ROBUSTA
+                String lowerCaseResponse = response.toLowerCase();
+                boolean isRecipeMessage = (lowerCaseResponse.contains("título") || lowerCaseResponse.contains("ingredientes"))
+                        && (lowerCaseResponse.contains("modo de preparo") || lowerCaseResponse.contains("modopreparo"));
+
+
+                // Lógica de substituição dos marcadores para uma melhor exibição
+                String finalResponse = response
                         .replace("###TÍTULO###", "Título:")
-                        .replace("##INGREDIENTES##", "\n\nIngredientes:")
+                        .replace("### Ingredientes ###", "\n\nIngredientes:")
                         .replace("###INGREDIENTES###", "\n\nIngredientes:")
-                        .replace("##MODOPREPARO##", "\n\nModo de Preparo:")
-                        .replace("###MODOPREPARO###", "\n\nModo de Preparo:");
+                        .replace("### MODOPREPARO ###", "\n\nModo de Preparo:")
+                        .replace("###MODOPREPARO###", "\n\nModo de Preparo:")
+                        .replace("###FIM###", ""); // Remove o marcador de fim
+
                 runOnUiThread(() -> {
                     aiLoadingIndicator.setVisibility(View.GONE);
                     Mensagem mensagemIA = new Mensagem(finalResponse, false, isRecipeMessage);
@@ -252,6 +258,8 @@ public class MainActivity extends AppCompatActivity {
             String titulo = "";
             String ingredientes = "";
             String modoPreparo = "";
+
+            // Padrão para extrair o título
             Pattern titlePattern = Pattern.compile("Título:(.*?)(?=\\n\\nIngredientes:)", Pattern.DOTALL);
             Matcher titleMatcher = titlePattern.matcher(rawResponse);
             if (titleMatcher.find()) {
@@ -263,17 +271,23 @@ public class MainActivity extends AppCompatActivity {
                     titulo = altTitleMatcher.group(1).trim();
                 }
             }
+
+            // Padrão para extrair ingredientes e modo de preparo
             String ingredientesDelim = "Ingredientes:";
             String modoPreparoDelim = "Modo de Preparo:";
+
             int idxIngredientes = rawResponse.indexOf(ingredientesDelim);
             int idxModoPreparo = rawResponse.indexOf(modoPreparoDelim);
+
             if (idxIngredientes != -1 && idxModoPreparo != -1) {
                 ingredientes = rawResponse.substring(idxIngredientes + ingredientesDelim.length(), idxModoPreparo).trim();
                 modoPreparo = rawResponse.substring(idxModoPreparo + modoPreparoDelim.length()).trim();
             }
+
             if (titulo.isEmpty() || ingredientes.isEmpty() || modoPreparo.isEmpty()) {
                 throw new IllegalArgumentException("Falha ao extrair uma ou mais seções da receita.");
             }
+
             Receita receitaFavorita = new Receita(userId, titulo, ingredientes, modoPreparo, "GERADA");
             receitaFavorita.isFavorita = true;
             receitaFavorita.mealType = mealType;
@@ -292,8 +306,27 @@ public class MainActivity extends AppCompatActivity {
         isChatModeActive = true;
         onBackPressedCallback.setEnabled(true);
         bottomNavigation.setSelectedItemId(R.id.navigation_ai_chat);
-        homeContentGroup.setVisibility(View.GONE);
-        aiChatRecyclerView.setVisibility(View.VISIBLE);
+
+        homeContentGroup.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .setInterpolator(new AccelerateDecelerateInterpolator())
+                .withEndAction(() -> {
+                    homeContentGroup.setVisibility(View.GONE);
+                    aiChatRecyclerView.setAlpha(0f);
+                    aiChatRecyclerView.setVisibility(View.VISIBLE);
+                    aiChatRecyclerView.animate()
+                            .alpha(1f)
+                            .setDuration(300)
+                            .setStartDelay(50)
+                            .setInterpolator(new AccelerateDecelerateInterpolator());
+                });
+
+        if (mensagemList != null && mensagemList.isEmpty()) {
+            Mensagem welcomeMessage = new Mensagem("Com que receita posso te ajudar hoje?", false);
+            mensagemList.add(welcomeMessage);
+            chatAdapter.notifyItemInserted(0);
+        }
     }
 
     private void showHomeMode() {
@@ -301,8 +334,21 @@ public class MainActivity extends AppCompatActivity {
         isChatModeActive = false;
         onBackPressedCallback.setEnabled(false);
         bottomNavigation.setSelectedItemId(R.id.navigation_home);
-        homeContentGroup.setVisibility(View.VISIBLE);
-        aiChatRecyclerView.setVisibility(View.GONE);
         aiMessageEditText.clearFocus();
+
+        aiChatRecyclerView.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .setInterpolator(new AccelerateDecelerateInterpolator())
+                .withEndAction(() -> {
+                    aiChatRecyclerView.setVisibility(View.GONE);
+                    homeContentGroup.setAlpha(0f);
+                    homeContentGroup.setVisibility(View.VISIBLE);
+                    homeContentGroup.animate()
+                            .alpha(1f)
+                            .setDuration(300)
+                            .setStartDelay(50)
+                            .setInterpolator(new AccelerateDecelerateInterpolator());
+                });
     }
 }

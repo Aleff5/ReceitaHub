@@ -3,21 +3,15 @@ package com.example.receitahub.data.model;
 public class Mensagem {
     private String texto;
     private boolean enviadoPeloUsuario;
-    private boolean isRecipe; // CAMPO ADICIONADO
+    private boolean isRecipe;
+    private boolean isFavorited = false; // PASSO 1: CAMPO ADICIONADO PARA "MEMÓRIA"
 
-    /**
-     * Construtor principal que define se a mensagem é uma receita.
-     */
     public Mensagem(String texto, boolean enviadoPeloUsuario, boolean isRecipe) {
         this.texto = texto;
         this.enviadoPeloUsuario = enviadoPeloUsuario;
         this.isRecipe = isRecipe;
     }
 
-    /**
-     * Construtor antigo para mensagens que não são receitas (como as do usuário).
-     * Por padrão, define isRecipe como false.
-     */
     public Mensagem(String texto, boolean enviadoPeloUsuario) {
         this(texto, enviadoPeloUsuario, false);
     }
@@ -30,11 +24,17 @@ public class Mensagem {
         return enviadoPeloUsuario;
     }
 
-    /**
-     * MÉTODO ADICIONADO para verificar se esta mensagem é uma receita.
-     * @return true se for uma receita, false caso contrário.
-     */
     public boolean isRecipe() {
         return isRecipe;
     }
+
+    // --- MÉTODOS ADICIONADOS PARA O PASSO 1 ---
+    public boolean isFavorited() {
+        return isFavorited;
+    }
+
+    public void setFavorited(boolean favorited) {
+        isFavorited = favorited;
+    }
+    // -----------------------------------------
 }

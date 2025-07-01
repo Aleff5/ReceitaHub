@@ -3,7 +3,7 @@ package com.example.receitahub.db.dao;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
-import androidx.room.Update; // IMPORT ADICIONADO
+import androidx.room.Update;
 
 import com.example.receitahub.data.model.User;
 
@@ -21,7 +21,6 @@ public interface UserDao {
     @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
     User getUserById(long userId);
 
-    // MÉTODO ADICIONADO para atualizar os dados de um usuário
     @Update
     void updateUser(User user);
 }

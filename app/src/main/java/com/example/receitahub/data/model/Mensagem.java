@@ -4,7 +4,7 @@ public class Mensagem {
     private String texto;
     private boolean enviadoPeloUsuario;
     private boolean isRecipe;
-    private boolean isFavorited = false; // PASSO 1: CAMPO ADICIONADO PARA "MEMÓRIA"
+    private boolean isFavorited = false;
 
     public Mensagem(String texto, boolean enviadoPeloUsuario, boolean isRecipe) {
         this.texto = texto;
@@ -28,7 +28,6 @@ public class Mensagem {
         return isRecipe;
     }
 
-    // --- MÉTODOS ADICIONADOS PARA O PASSO 1 ---
     public boolean isFavorited() {
         return isFavorited;
     }
@@ -36,5 +35,4 @@ public class Mensagem {
     public void setFavorited(boolean favorited) {
         isFavorited = favorited;
     }
-    // -----------------------------------------
 }

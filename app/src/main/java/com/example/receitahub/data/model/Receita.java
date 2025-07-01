@@ -8,7 +8,6 @@ import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-// ALTERADO: Adicionado um índice para a coluna 'userId' para melhorar a performance
 @Entity(tableName = "receitas",
         indices = {@Index(value = "userId")},
         foreignKeys = @ForeignKey(entity = User.class,
@@ -30,12 +29,9 @@ public class Receita {
     @Nullable
     public String mealType;
 
-    // ADICIONADO DE VOLTA: Campo para saber se a receita é favorita
     public boolean isFavorita;
-    // ADICIONADO DE VOLTA: Campo para registrar o momento da criação
     public long timestamp;
 
-    // ALTERADO: Este construtor agora será ignorado pelo Room para evitar ambiguidades
     @Ignore
     public Receita() {}
 
@@ -45,7 +41,7 @@ public class Receita {
         this.ingredientes = ingredientes;
         this.modoDePreparo = modoDePreparo;
         this.status = status;
-        this.isFavorita = false; // Valor padrão
-        this.timestamp = System.currentTimeMillis(); // Valor padrão
+        this.isFavorita = false;
+        this.timestamp = System.currentTimeMillis();
     }
 }

@@ -1,8 +1,5 @@
-# Conteúdo corrigido para libs.versions.toml
-
 [versions]
-# Versão correta e única para o Android Gradle Plugin
-androidGradlePlugin = "8.6.0" # <-- LINHA CORRIGIDA AQUI
+androidGradlePlugin = "8.6.0"
 
 generativeai = "0.6.0"
 kotlinx-coroutines-guava = "1.8.0"
@@ -15,10 +12,10 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 lifecycle = "2.7.0"
 material = "1.12.0"
-room = "2.6.1" # Nota: A versão 2.7.x do Room não existe, a última estável é 2.6.1
+room = "2.6.1"
 
 [libraries]
-# Room
+
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
@@ -26,20 +23,20 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 google-ai-generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
 kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinx-coroutines-guava" }
 
-# Lifecycle (ViewModel e LiveData)
+
 lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
 lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "lifecycle" }
 
-# Testes
+
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
-# UI
+
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 [plugins]
-# O nome aqui usa um traço para criar o "android.application" no código
+
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

@@ -14,9 +14,7 @@ import com.example.receitahub.data.model.Receita;
 
 public class RecipeAdapter extends ListAdapter<Receita, RecipeAdapter.RecipeViewHolder> {
 
-    // --- ALTERAÇÕES APLICADAS AQUI ---
     public interface OnItemClickListener {
-        // A LINHA "void onEditClick(Receita receita);" FOI REMOVIDA DAQUI
         void onDeleteClick(Receita receita);
         void onItemClick(Receita receita);
     }
@@ -27,7 +25,6 @@ public class RecipeAdapter extends ListAdapter<Receita, RecipeAdapter.RecipeView
         this.listener = listener;
     }
 
-    // --- FIM DAS ALTERAÇÕES ---
 
     public RecipeAdapter() {
         super(DIFF_CALLBACK);
@@ -58,16 +55,13 @@ public class RecipeAdapter extends ListAdapter<Receita, RecipeAdapter.RecipeView
         holder.textViewTitle.setText(currentRecipe.titulo);
     }
 
-    // --- ALTERAÇÕES APLICADAS AQUI ---
     class RecipeViewHolder extends RecyclerView.ViewHolder {
         private final TextView textViewTitle;
-        // A VARIÁVEL "buttonEditar" FOI REMOVIDA
         private final ImageButton buttonDeletar;
 
         public RecipeViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTitle = itemView.findViewById(R.id.tv_recipe_title);
-            // O CÓDIGO DO "buttonEditar" (findViewById e setOnClickListener) FOI REMOVIDO
             buttonDeletar = itemView.findViewById(R.id.button_deletar);
 
             itemView.setOnClickListener(v -> {

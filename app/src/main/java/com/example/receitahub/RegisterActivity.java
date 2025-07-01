@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    // ADICIONADO: Campo para o nome
     private EditText etRegisterName, etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
     private Button btnRegisterAction;
     private TextView tvBackToLogin;
@@ -38,7 +37,6 @@ public class RegisterActivity extends AppCompatActivity {
 
         userDao = AppDatabase.getDatabase(getApplicationContext()).userDao();
 
-        // ADICIONADO: Mapeamento do novo campo
         etRegisterName = findViewById(R.id.et_register_name);
         etRegisterEmail = findViewById(R.id.et_register_email);
         etRegisterPassword = findViewById(R.id.et_register_password);
@@ -57,13 +55,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
-        // ADICIONADO: Leitura do campo de nome
         String nome = etRegisterName.getText().toString().trim();
         String email = etRegisterEmail.getText().toString().trim();
         String password = etRegisterPassword.getText().toString().trim();
         String confirmPassword = etRegisterConfirmPassword.getText().toString().trim();
 
-        // ADICIONADO: Validação do nome
         if (TextUtils.isEmpty(nome)) {
             etRegisterName.setError("O nome é obrigatório.");
             return;
@@ -87,7 +83,6 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
-            // ALTERADO: A chamada do construtor agora inclui o nome
             User newUser = new User(nome, email, password);
             userDao.insertUser(newUser);
 

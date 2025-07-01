@@ -33,14 +33,11 @@ public class SessionManager {
         return prefs.getLong(KEY_USER_ID, -1);
     }
 
-    // ALTERADO: O método foi renomeado de "logout" para "clearSession" para corresponder
-    // à chamada na ProfileEditActivity.
     public void clearSession() {
         editor.clear();
         editor.apply();
     }
 
-    // Métodos para o limite do chat de convidado
     public int getChatInteractionCount() {
         return prefs.getInt(KEY_CHAT_COUNT, 0);
     }

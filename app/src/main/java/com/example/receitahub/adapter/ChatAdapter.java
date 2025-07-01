@@ -18,7 +18,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int VIEW_TYPE_AI = 2;
 
     public interface OnFavoriteClickListener {
-        // CORREÇÃO 1: Adicionado o parâmetro 'position' de volta
         void onFavoriteClick(Mensagem mensagem, int position);
     }
     private OnFavoriteClickListener favoriteClickListener;
@@ -105,7 +104,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                 mensagem.setFavorited(true);
                                 notifyItemChanged(position);
 
-                                // CORREÇÃO 2: Adicionado o parâmetro 'position' de volta à chamada
                                 favoriteClickListener.onFavoriteClick(mensagem, position);
                             }
                         }

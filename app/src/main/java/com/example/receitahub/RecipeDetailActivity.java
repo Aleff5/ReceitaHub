@@ -25,7 +25,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_detail);
 
-        // Mapeia os componentes do layout
         ivBackButton = findViewById(R.id.iv_detail_back_button);
         ivEditButton = findViewById(R.id.iv_detail_edit_button);
         tvToolbarTitle = findViewById(R.id.tv_detail_recipe_title_toolbar);
@@ -38,7 +37,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         this.recipeId = getIntent().getIntExtra("RECIPE_ID", -1);
 
         if (this.recipeId != -1) {
-            // A chamada inicial para carregar os dados continua aqui
             loadRecipeDetails(this.recipeId);
 
             ivEditButton.setOnClickListener(v -> {
@@ -53,17 +51,13 @@ public class RecipeDetailActivity extends AppCompatActivity {
         }
     }
 
-    // --- MÉTODO ADICIONADO PARA ATUALIZAR A TELA ---
     @Override
     protected void onResume() {
         super.onResume();
-        // Este método é chamado toda vez que a tela volta a ficar visível.
-        // Ele garante que os dados sejam recarregados do banco.
         if (recipeId != -1) {
             loadRecipeDetails(recipeId);
         }
     }
-    // ---------------------------------------------------
 
     private void loadRecipeDetails(int recipeId) {
         AppDatabase db = AppDatabase.getDatabase(this);

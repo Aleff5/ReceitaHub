@@ -36,7 +36,6 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Componentes da UI
     private Group homeContentGroup;
     private Button btnPopularRecipes, btnQuickRecipes, btnHealthyRecipes, btnVeganRecipes, btnDailyRecipe, btnNews,
             btnBreakfast, btnLunch, btnDinner, btnDessert;
@@ -46,12 +45,10 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar aiLoadingIndicator;
     private BottomNavigationView bottomNavigation;
 
-    // Variáveis do Chat
     private List<Mensagem> mensagemList;
     private ChatAdapter chatAdapter;
     private GeminiService geminiService;
 
-    // Componentes de Dados e Sessão
     private SessionManager sessionManager;
     private ReceitaDao receitaDao;
     private final Executor executor = Executors.newSingleThreadExecutor();
@@ -69,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         geminiService = new GeminiService();
         geminiService.iniciarChat();
 
-        // Chamadas dos métodos que estavam faltando
         iniciarComponentes();
         configurarListeners();
         configurarChatRecyclerView();
@@ -201,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
         return "Geral";
     }
 
-    // MÉTODO ATUALIZADO COM A LÓGICA DE DETECÇÃO CORRIGIDA
     private void enviarMensagem(String texto) {
         if (!sessionManager.isLoggedIn() && sessionManager.getChatInteractionCount() >= 5) {
             Toast.makeText(this, "Você atingiu o limite de 5 mensagens. Faça login para continuar.", Toast.LENGTH_LONG).show();
@@ -220,13 +215,11 @@ public class MainActivity extends AppCompatActivity {
                     sessionManager.incrementChatInteractionCount();
                 }
 
-                // LÓGICA DE DETECÇÃO DE RECEITA TORNADA MAIS ROBUSTA
                 String lowerCaseResponse = response.toLowerCase();
                 boolean isRecipeMessage = (lowerCaseResponse.contains("título") || lowerCaseResponse.contains("ingredientes"))
                         && (lowerCaseResponse.contains("modo de preparo") || lowerCaseResponse.contains("modopreparo"));
 
 
-                // Lógica de substituição dos marcadores para uma melhor exibição
                 String finalResponse = response
                         .replace("###TÍTULO###", "Título:")
                         .replace("### Ingredientes ###", "\n\nIngredientes:")
@@ -259,7 +252,6 @@ public class MainActivity extends AppCompatActivity {
             String ingredientes = "";
             String modoPreparo = "";
 
-            // Padrão para extrair o título
             Pattern titlePattern = Pattern.compile("Título:(.*?)(?=\\n\\nIngredientes:)", Pattern.DOTALL);
             Matcher titleMatcher = titlePattern.matcher(rawResponse);
             if (titleMatcher.find()) {
@@ -272,7 +264,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // Padrão para extrair ingredientes e modo de preparo
             String ingredientesDelim = "Ingredientes:";
             String modoPreparoDelim = "Modo de Preparo:";
 

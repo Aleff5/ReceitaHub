@@ -53,7 +53,6 @@ public class ProfileEditActivity extends AppCompatActivity {
                     if (internalUri != null) {
                         selectedImageUri = internalUri;
                         ivProfilePicture.setImageURI(selectedImageUri);
-                        // ADICIONADO: Remove a tinta cinza para mostrar a foto real
                         ivProfilePicture.setImageTintList(null);
                     } else {
                         Toast.makeText(this, "Falha ao carregar a imagem.", Toast.LENGTH_SHORT).show();
@@ -122,7 +121,6 @@ public class ProfileEditActivity extends AppCompatActivity {
                         Uri imageUri = Uri.parse(currentUser.profilePictureUri);
                         selectedImageUri = imageUri;
                         ivProfilePicture.setImageURI(imageUri);
-                        // ADICIONADO: Remove a tinta cinza para mostrar a foto salva
                         ivProfilePicture.setImageTintList(null);
                     }
                 }

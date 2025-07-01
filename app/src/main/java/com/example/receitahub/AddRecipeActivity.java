@@ -6,7 +6,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView; // Import necessário
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,7 +25,7 @@ public class AddRecipeActivity extends AppCompatActivity {
     private RadioGroup rgMealType;
     private Button btnAddRecipe;
     private ImageView ivBackButton;
-    private TextView tvAddRecipeTitle; // 1. Variável para o TextView do título
+    private TextView tvAddRecipeTitle;
 
     private ReceitaDao receitaDao;
     private SessionManager sessionManager;
@@ -47,19 +47,16 @@ public class AddRecipeActivity extends AppCompatActivity {
         etModoDePreparo = findViewById(R.id.et_modo_de_preparo);
         btnAddRecipe = findViewById(R.id.btn_add_recipe);
         ivBackButton = findViewById(R.id.iv_back_button);
-        tvAddRecipeTitle = findViewById(R.id.tv_add_recipe_title); // 2. Mapeando o TextView do título
+        tvAddRecipeTitle = findViewById(R.id.tv_add_recipe_title);
 
         this.recipeId = getIntent().getIntExtra("RECIPE_ID", -1);
 
-        // 3. Lógica para definir o texto do TextView do título
         if (this.recipeId != -1) {
-            // ID válido, entramos em modo de edição
-            tvAddRecipeTitle.setText("Editar Receita"); // Substituído o setTitle()
+            tvAddRecipeTitle.setText("Editar Receita");
             btnAddRecipe.setText("Salvar Alterações");
             loadRecipeData();
         } else {
-            // ID inválido, entramos em modo de criação
-            tvAddRecipeTitle.setText("Adicionar Nova Receita"); // Substituído o setTitle()
+            tvAddRecipeTitle.setText("Adicionar Nova Receita");
         }
 
 

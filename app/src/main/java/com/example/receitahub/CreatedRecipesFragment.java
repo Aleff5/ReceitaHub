@@ -52,8 +52,6 @@ public class CreatedRecipesFragment extends Fragment {
                 startActivity(intent);
             }
 
-            // O MÉTODO onEditClick FOI REMOVIDO DESTA ÁREA
-
             @Override
             public void onDeleteClick(Receita receita) {
                 new AlertDialog.Builder(getContext())
